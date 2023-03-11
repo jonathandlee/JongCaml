@@ -1,6 +1,6 @@
 # 3110Project
 
-Mahjong OCaml
+Mahjong OCaml!
 
 Project Members:
 1. Alexander Peek (ap2298)
