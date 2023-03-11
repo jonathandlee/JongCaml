@@ -225,7 +225,7 @@ let compare_tile (a : tile) (b : tile) : int =
 [@@@warning "+8"]
 
 let rec hand_draw_helper (h : tile list) wall (n : int) : hand * wall =
-  if n = 0 then ({ tiles = h; melds = [] }, wall)
+  if n = 0 then ({ tiles = List.stable_sort compare_tile h; melds = [] }, wall)
   else hand_draw_helper (wall_draw wall :: h) (wall_pop wall) (n - 1)
 
 let hand_draw wall = hand_draw_helper [] wall 13
