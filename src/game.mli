@@ -74,3 +74,7 @@ val deadwall_draw : wall -> tile
 
 val tiles_left : wall -> int
 (** [tiles_left w] gives the number of tiles left in the wall.*)
+
+val hand_draw : wall -> hand * wall
+(** [hand_draw w] creates a hand by drawing 13 tiles from the wall and returns
+    both the hand and the remaining wall.*)

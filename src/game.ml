@@ -148,3 +148,84 @@ let string_of_tile tile : string =
       | Red -> "Red"
       | Green -> "Green"
       | White -> "White")
+
+let compare_suit (a : suit) (b : suit) : int =
+  let x =
+    match a with
+    | Pin -> 1
+    | Man -> 2
+    | Sou -> 3
+    | Wind -> 4
+    | Dragon -> 5
+  in
+  let y =
+    match b with
+    | Pin -> 1
+    | Man -> 2
+    | Sou -> 3
+    | Wind -> 4
+    | Dragon -> 5
+  in
+  x - y
+
+let compare_direction (a : direction) (b : direction) : int =
+  let x =
+    match a with
+    | East -> 1
+    | South -> 2
+    | West -> 3
+    | North -> 4
+  in
+  let y =
+    match b with
+    | East -> 1
+    | South -> 2
+    | West -> 3
+    | North -> 4
+  in
+  x - y
+
+let compare_color (a : color) (b : color) : int =
+  let x =
+    match a with
+    | White -> 1
+    | Green -> 2
+    | Red -> 3
+  in
+  let y =
+    match b with
+    | White -> 1
+    | Green -> 2
+    | Red -> 3
+  in
+  x - y
+
+(** Comparison function for tiles. Trust me this function is safe*)
+
+[@@@warning "-8"]
+
+let compare_tile (a : tile) (b : tile) : int =
+  let x = compare_suit (triple_fst a) (triple_fst b) in
+  if x = 0 then
+    match triple_snd a with
+    | Integer x ->
+        compare x
+          (let (Integer y) = triple_snd b in
+           y)
+    | Direction d ->
+        compare_direction d
+          (let (Direction y) = triple_snd b in
+           y)
+    | Color c ->
+        compare_color c
+          (let (Color y) = triple_snd b in
+           y)
+  else x
+
+[@@@warning "+8"]
+
+let rec hand_draw_helper (h : tile list) wall (n : int) : hand * wall =
+  if n = 0 then ({ tiles = h; melds = [] }, wall)
+  else hand_draw_helper (wall_draw wall :: h) (wall_pop wall) (n - 1)
+
+let hand_draw wall = hand_draw_helper [] wall 13
