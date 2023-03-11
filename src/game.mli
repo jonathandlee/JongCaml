@@ -64,9 +64,10 @@ val tile_dora : tile -> int
 
 val wall_draw : wall -> tile
 (** [wall_draw w] draws first tile in the wall. Requires: the wall is not out of
-    tiles. Raises: OutOfTiles exception*)
+    tiles. Raises: OutOfTiles exception. *)
 
 val wall_pop : wall -> wall
+(** [wall_pop w] returns the wall after a tile has been drawn. *)
 
 val deadwall_draw : wall -> tile
 (** [deadwall_draw w] draws first tile from the dead wall.*)

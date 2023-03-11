@@ -57,6 +57,27 @@ type state = {
 
 exception OutOfTiles
 
+(** Helper Functions*)
+
+(** Swap elements at position a and b. *)
+let rec swap_helper original lst a b pos new_list =
+  match lst with
+  | [] -> new_list
+  | h :: t ->
+      if pos <> a && pos <> b then
+        swap_helper original t a b (pos + 1) (new_list @ [ h ])
+      else if pos = a then
+        swap_helper original t a b (pos + 1) (new_list @ [ List.nth original b ])
+      else
+        swap_helper original t a b (pos + 1) (new_list @ [ List.nth original a ])
+
+(** Manipulating triples (tiles)*)
+let triple_fst (x, y, z) = x
+
+let triple_snd (x, y, z) = y
+let triple_third (x, y, z) = z
+let swap lst a b = swap_helper lst lst a b 0 []
+
 let generate_all_numbers suit : tile list =
   List.map (fun x -> (suit, Integer x, false)) [ 1; 2; 3; 4; 6; 7; 8; 9 ]
 
@@ -86,20 +107,6 @@ let all_tiles : tile list =
   @ generate_fives Pin @ generate_fives Man @ generate_fives Sou
   @ generate_red_fives [ Pin; Man; Sou ]
 
-(** Swap elements at position a and b. *)
-let rec swap_helper original lst a b pos new_list =
-  match lst with
-  | [] -> new_list
-  | h :: t ->
-      if pos <> a && pos <> b then
-        swap_helper original t a b (pos + 1) (new_list @ [ h ])
-      else if pos = a then
-        swap_helper original t a b (pos + 1) (new_list @ [ List.nth original b ])
-      else
-        swap_helper original t a b (pos + 1) (new_list @ [ List.nth original a ])
-
-let swap lst a b = swap_helper lst lst a b 0 []
-
 (** Shuffle tiles (this creates the wall)*)
 
 let rec create_wall wall bound =
@@ -117,10 +124,6 @@ let wall_pop wall =
   match wall.tiles with
   | [] -> raise OutOfTiles
   | h :: t -> { tiles = t; position = wall.position + 1 }
-
-let triple_fst (x, y, z) = x
-let triple_snd (x, y, z) = y
-let triple_third (x, y, z) = z
 
 let string_of_tile tile : string =
   (if triple_third tile then "Red " else "")
