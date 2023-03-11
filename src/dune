@@ -1,0 +1,4 @@
+(library
+ (name mahjong)
+ (public_name Mahjong)
+ (libraries yojson ANSITerminal))
