@@ -109,6 +109,12 @@ let all_tiles : tile list =
 
 (** Shuffle tiles (this creates the wall)*)
 
+(* n log(n) time *)
+let shuffle wall =
+  let x = List.map (fun y -> (Random.bits (), y)) wall in
+  let z = List.sort compare x in
+  { tiles = List.map snd z; position = 0 }
+
 let rec create_wall wall bound =
   if bound = 0 then { tiles = wall; position = 0 }
   else
