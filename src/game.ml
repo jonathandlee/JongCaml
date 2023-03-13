@@ -46,13 +46,16 @@ type player = {
   hand : hand;
   points : int;
   riichi : bool;
+  wind : direction;
+  discards : tile list;
 }
 
 type state = {
   wall : wall;
+  doras : tile list;
   players : player * player * player * player;
   round : int;
-  wind : suit;
+  wind : direction;
 }
 
 exception OutOfTiles
@@ -230,8 +233,68 @@ let compare_tile (a : tile) (b : tile) : int =
 
 [@@@warning "+8"]
 
+(* Temporary, need to properly deal to 4 people at once *)
 let rec hand_draw_helper (h : tile list) wall (n : int) : hand * wall =
   if n = 0 then ({ tiles = List.stable_sort compare_tile h; melds = [] }, wall)
   else hand_draw_helper (wall_draw wall :: h) (wall_pop wall) (n - 1)
 
 let hand_draw wall = hand_draw_helper [] wall 13
+
+(* attempt at proper hand dealing *)
+
+let rec sublist start_pos end_pos list =
+  match list with
+  | [] -> raise OutOfTiles
+  | hd :: tl ->
+      let tail =
+        if end_pos = 0 then [] else sublist (start_pos - 1) (end_pos - 1) tl
+      in
+      if start_pos > 0 then tail else hd :: tail
+
+let setup_game tiles =
+  let dead_wall = sublist 0 13 tiles in
+  let player_1 =
+    {
+      hand = { tiles = sublist 14 26 tiles; melds = [] };
+      points = 25000;
+      riichi = false;
+      wind = East;
+      discards = [];
+    }
+  in
+  let player_2 =
+    {
+      hand = { tiles = sublist 27 39 tiles; melds = [] };
+      points = 25000;
+      riichi = false;
+      wind = South;
+      discards = [];
+    }
+  in
+  let player_3 =
+    {
+      hand = { tiles = sublist 40 52 tiles; melds = [] };
+      points = 25000;
+      riichi = false;
+      wind = West;
+      discards = [];
+    }
+  in
+  let player_4 =
+    {
+      hand = { tiles = sublist 53 65 tiles; melds = [] };
+      points = 25000;
+      riichi = false;
+      wind = North;
+      discards = [];
+    }
+  in
+  let doras = sublist 0 4 dead_wall in
+  let wall = { tiles = sublist 66 135 tiles; position = 0 } in
+  {
+    wall;
+    doras;
+    players = (player_1, player_2, player_3, player_4);
+    round = 4;
+    wind = East;
+  }

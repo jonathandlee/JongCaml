@@ -31,7 +31,8 @@ type wall
 (** Wall from which tiles are drawn*)
 
 type player
-(** Contains information about a player's hand, points, and riichi*)
+(** Contains information about a player's hand, points, riichi, position (North,
+    East, South, or West), and discards *)
 
 exception InvalidSuit of string
 (** Raised when an invalid suit is given when initializing the game *)
@@ -78,3 +79,7 @@ val tiles_left : wall -> int
 val hand_draw : wall -> hand * wall
 (** [hand_draw w] creates a hand by drawing 13 tiles from the wall and returns
     both the hand and the remaining wall.*)
+
+val setup_game : wall -> hand list * wall
+(** [setup_game wall] deals four hands and sets up the state of the board for
+    the game to begin *)
