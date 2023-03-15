@@ -50,6 +50,11 @@ type player = {
   discards : tile list;
 }
 
+type updated_player_wall_data = {
+  player : player;
+  wall : wall;
+}
+
 type state = {
   wall : wall;
   doras : tile list;
@@ -113,10 +118,10 @@ let all_tiles : tile list =
 (** Shuffle tiles (this creates the wall)*)
 
 (* n log(n) time *)
-let shuffle wall =
-  let x = List.map (fun y -> (Random.bits (), y)) wall in
+let shuffle tiles =
+  let x = List.map (fun y -> (Random.bits (), y)) tiles in
   let z = List.sort compare x in
-  { tiles = List.map snd z; position = 0 }
+  List.map snd z
 
 let rec create_wall wall bound =
   if bound = 0 then { tiles = wall; position = 0 }
@@ -298,3 +303,56 @@ let setup_game tiles =
     round = 4;
     wind = East;
   }
+
+let update_players (players : player * player * player * player)
+    (updated_player : player) =
+  match players with
+  | a, b, c, d ->
+      if a.wind = updated_player.wind then (updated_player, b, c, d)
+      else if b.wind = updated_player.wind then (a, updated_player, c, d)
+      else (a, b, c, updated_player)
+
+(* TODO: This does not take into account drawing from dead wall *)
+let draw_tile board wind =
+  let player_to_draw =
+    match board.players with
+    | a, b, c, d ->
+        if a.wind = wind then a
+        else if b.wind = wind then b
+        else if c.wind = wind then c
+        else d
+  in
+  let updated_player_wall =
+    match board.wall.tiles with
+    | [] -> raise OutOfTiles
+    | hd :: tl ->
+        let new_hand =
+          {
+            tiles = hd :: player_to_draw.hand.tiles;
+            melds = player_to_draw.hand.melds;
+          }
+        in
+        let new_wall = tl in
+        let updated_data =
+          {
+            player =
+              {
+                hand = new_hand;
+                points = player_to_draw.points;
+                riichi = player_to_draw.riichi;
+                wind = player_to_draw.wind;
+                discards = player_to_draw.discards;
+              };
+            wall = { tiles = new_wall; position = board.wall.position + 1 };
+          }
+        in
+        updated_data
+  in
+  {
+    wall = updated_player_wall.wall;
+    doras = board.doras;
+    players = update_players board.players updated_player_wall.player;
+    round = board.round;
+    wind = board.wind;
+  }
+(* TODO: Deal with discarding tile from hand here *)
