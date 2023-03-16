@@ -107,6 +107,10 @@ let quad_fst (w, x, y, z) = w
 let quad_snd (w, x, y, z) = x
 let quad_trd (w, x, y, z) = y
 let quad_frth (w, x, y, z) = z
+let invalid_block = Invalid
+let create_single t = Single t
+let invalid_block = Invalid
+let create_single t = Single t
 
 let generate_all_numbers suit : tile list =
   List.map (fun x -> (suit, Integer x, false)) [ 1; 2; 3; 4; 6; 7; 8; 9 ]
@@ -273,7 +277,8 @@ let combine (b : block) (t : tile) : block =
         if x - y = 1 || y - x = 2 then Sequence (a, b, t) else Invalid
       else Invalid
   | Single a ->
-      if tile_suit a = tile_suit t then
+      if compare_tile a t = 0 then Pair a
+      else if tile_suit a = tile_suit t then
         match tile_suit a with
         | Wind | Dragon ->
             if compare_suit (tile_suit a) (tile_suit t) = 0 then Pair a
@@ -418,4 +423,5 @@ let rec string_of_hand tiles =
       if tl = [] then string_of_tile hd
       else string_of_tile hd ^ ", " ^ string_of_hand tl
 
+(* let discard_tile hand = *)
 (* let discard_tile hand = *)
