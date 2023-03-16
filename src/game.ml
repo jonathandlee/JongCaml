@@ -33,6 +33,7 @@ type meld =
   | Kan of (tile * tile * tile * tile)
 
 type hand = {
+  draw : tile option;
   tiles : tile list;
   melds : meld list;
 }
@@ -65,6 +66,16 @@ type state = {
   wind : direction;
 }
 
+type block =
+  | Triple of tile
+  | Sequence of tile * tile * tile
+  | Ryanmen of tile * tile
+  | Kanchan of tile * tile
+  | Penchan of tile * tile
+  | Single of tile
+  | Pair of tile
+  | Invalid
+
 exception OutOfTiles
 
 (** Helper Functions*)
@@ -87,6 +98,8 @@ let triple_fst (x, y, z) = x
 let triple_snd (x, y, z) = y
 let triple_third (x, y, z) = z
 let swap lst a b = swap_helper lst lst a b 0 []
+let closed_hand_tiles h = h.tiles
+let open_hand_tiles h = h.melds
 
 (** Maniupulating quads (players) *)
 let quad_fst (w, x, y, z) = w
@@ -137,6 +150,10 @@ let rec create_wall wall bound =
   else
     let x = Random.int bound in
     create_wall (swap wall x (bound - 1)) (bound - 1)
+
+let tile_suit t = triple_fst t
+let tile_value t = triple_snd t
+let tile_dora t = triple_third t
 
 let wall_draw wall =
   match wall.tiles with
@@ -245,6 +262,30 @@ let compare_tile (a : tile) (b : tile) : int =
            y)
   else x
 
+let combine (b : block) (t : tile) : block =
+  match b with
+  | Triple _ -> Invalid
+  | Sequence (a, b, c) -> Invalid
+  | Ryanmen (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if x - y = 1 || y - x = 2 then Sequence (a, b, t) else Invalid
+      else Invalid
+  | Single a ->
+      if tile_suit a = tile_suit t then
+        match tile_suit a with
+        | Wind | Dragon ->
+            if compare_suit (tile_suit a) (tile_suit t) = 0 then Pair a
+            else Invalid
+        | Pin | Man | Sou ->
+            let (Integer x) = tile_value a in
+            let (Integer y) = tile_value t in
+            if x - y = 1 || y - x = 1 then Ryanmen (a, t) else Invalid
+      else Invalid
+  | Pair a -> if compare_tile a t = 0 then Triple a else Invalid
+  | _ -> Invalid
+
 [@@@warning "+8"]
 
 let sort_tiles tiles = List.stable_sort compare_tile tiles
@@ -262,7 +303,8 @@ let setup_game tiles =
   let dead_wall = sublist 0 13 tiles in
   let player_1 =
     {
-      hand = { tiles = sort_tiles (sublist 14 26 tiles); melds = [] };
+      hand =
+        { draw = None; tiles = sort_tiles (sublist 14 26 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = East;
@@ -271,7 +313,8 @@ let setup_game tiles =
   in
   let player_2 =
     {
-      hand = { tiles = sort_tiles (sublist 27 39 tiles); melds = [] };
+      hand =
+        { draw = None; tiles = sort_tiles (sublist 27 39 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = South;
@@ -280,7 +323,8 @@ let setup_game tiles =
   in
   let player_3 =
     {
-      hand = { tiles = sort_tiles (sublist 40 52 tiles); melds = [] };
+      hand =
+        { draw = None; tiles = sort_tiles (sublist 40 52 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = West;
@@ -289,7 +333,8 @@ let setup_game tiles =
   in
   let player_4 =
     {
-      hand = { tiles = sort_tiles (sublist 53 65 tiles); melds = [] };
+      hand =
+        { draw = None; tiles = sort_tiles (sublist 53 65 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = North;
@@ -333,7 +378,8 @@ let draw_tile board wind =
     | hd :: tl ->
         let new_hand =
           {
-            tiles = hd :: player_to_draw.hand.tiles;
+            draw = Some hd;
+            tiles = player_to_draw.hand.tiles;
             melds = player_to_draw.hand.melds;
           }
         in

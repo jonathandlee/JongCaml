@@ -24,6 +24,8 @@ type tile
 type meld
 (** Either a chi, pon, or kan sequence*)
 
+type value
+
 type suit
 (** All suits and honors in Mahjong*)
 
@@ -33,6 +35,9 @@ type wall
 type player
 (** Contains information about a player's hand, points, riichi, position (North,
     East, South, or West), and discards *)
+
+type block    
+
 
 exception InvalidSuit of string
 (** Raised when an invalid suit is given when initializing the game *)
@@ -55,8 +60,10 @@ val get_player : state -> int -> player
 (** [get_player s n] gives the nth player of the game (East being the first
     player and going in a ccw direction)*)
 
-val tile_value : tile -> suit
-(** [tile_value a] gives the suit. For instance, a tile representing the "One
+val tile_suit : tile -> suit
+
+val tile_value : tile -> value
+(** [tile_value a] gives the value. For instance, a tile representing the "One
     Pin" will return the suit [Pin of 1]. *)
 
 val tile_dora : tile -> int
@@ -83,3 +90,7 @@ val hand_draw : wall -> hand * wall
 val setup_game : wall -> hand list * wall
 (** [setup_game wall] deals four hands and sets up the state of the board for
     the game to begin *)
+
+val closed_hand_tiles : hand -> tile list
+
+val open_hand_tiles : hand -> tile list
