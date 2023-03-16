@@ -94,3 +94,9 @@ val setup_game : wall -> hand list * wall
 val closed_hand_tiles : hand -> tile list
 
 val open_hand_tiles : hand -> tile list
+
+val combine : block -> tile -> block
+
+val create_single : tile -> block
+
+val invalid_block : block
