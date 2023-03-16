@@ -57,7 +57,9 @@ type updated_player_wall_data = {
 
 type state = {
   wall : wall;
-  doras : tile list;
+  dead_wall : tile list;
+  dora : tile list;
+  hidden_dora : tile list;
   players : player * player * player * player;
   round : int;
   wind : direction;
@@ -85,6 +87,13 @@ let triple_fst (x, y, z) = x
 let triple_snd (x, y, z) = y
 let triple_third (x, y, z) = z
 let swap lst a b = swap_helper lst lst a b 0 []
+
+(** Maniupulating quads (players) *)
+let quad_fst (w, x, y, z) = w
+
+let quad_snd (w, x, y, z) = x
+let quad_trd (w, x, y, z) = y
+let quad_frth (w, x, y, z) = z
 
 let generate_all_numbers suit : tile list =
   List.map (fun x -> (suit, Integer x, false)) [ 1; 2; 3; 4; 6; 7; 8; 9 ]
@@ -238,14 +247,7 @@ let compare_tile (a : tile) (b : tile) : int =
 
 [@@@warning "+8"]
 
-(* Temporary, need to properly deal to 4 people at once *)
-let rec hand_draw_helper (h : tile list) wall (n : int) : hand * wall =
-  if n = 0 then ({ tiles = List.stable_sort compare_tile h; melds = [] }, wall)
-  else hand_draw_helper (wall_draw wall :: h) (wall_pop wall) (n - 1)
-
-let hand_draw wall = hand_draw_helper [] wall 13
-
-(* attempt at proper hand dealing *)
+let sort_tiles tiles = List.stable_sort compare_tile tiles
 
 let rec sublist start_pos end_pos list =
   match list with
@@ -260,7 +262,7 @@ let setup_game tiles =
   let dead_wall = sublist 0 13 tiles in
   let player_1 =
     {
-      hand = { tiles = sublist 14 26 tiles; melds = [] };
+      hand = { tiles = sort_tiles (sublist 14 26 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = East;
@@ -269,7 +271,7 @@ let setup_game tiles =
   in
   let player_2 =
     {
-      hand = { tiles = sublist 27 39 tiles; melds = [] };
+      hand = { tiles = sort_tiles (sublist 27 39 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = South;
@@ -278,7 +280,7 @@ let setup_game tiles =
   in
   let player_3 =
     {
-      hand = { tiles = sublist 40 52 tiles; melds = [] };
+      hand = { tiles = sort_tiles (sublist 40 52 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = West;
@@ -287,18 +289,21 @@ let setup_game tiles =
   in
   let player_4 =
     {
-      hand = { tiles = sublist 53 65 tiles; melds = [] };
+      hand = { tiles = sort_tiles (sublist 53 65 tiles); melds = [] };
       points = 25000;
       riichi = false;
       wind = North;
       discards = [];
     }
   in
-  let doras = sublist 0 4 dead_wall in
+  let dora = sublist 0 4 dead_wall in
+  let hidden_dora = sublist 5 9 dead_wall in
   let wall = { tiles = sublist 66 135 tiles; position = 0 } in
   {
     wall;
-    doras;
+    dead_wall = sublist 10 13 dead_wall;
+    dora;
+    hidden_dora;
     players = (player_1, player_2, player_3, player_4);
     round = 4;
     wind = East;
@@ -350,9 +355,21 @@ let draw_tile board wind =
   in
   {
     wall = updated_player_wall.wall;
-    doras = board.doras;
+    dead_wall = board.dead_wall;
+    dora = board.dora;
+    hidden_dora = board.hidden_dora;
     players = update_players board.players updated_player_wall.player;
     round = board.round;
     wind = board.wind;
   }
 (* TODO: Deal with discarding tile from hand here *)
+
+(* does not deal with melds *)
+let rec string_of_hand tiles =
+  match tiles with
+  | [] -> ""
+  | hd :: tl ->
+      if tl = [] then string_of_tile hd
+      else string_of_tile hd ^ ", " ^ string_of_hand tl
+
+(* let discard_tile hand = *)
