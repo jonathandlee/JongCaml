@@ -33,6 +33,7 @@ type meld =
   | Kan of (tile * tile * tile * tile)
 
 type hand = {
+  draw : tile option;
   tiles : tile list;
   melds : meld list;
 }
@@ -85,6 +86,8 @@ let triple_fst (x, y, z) = x
 let triple_snd (x, y, z) = y
 let triple_third (x, y, z) = z
 let swap lst a b = swap_helper lst lst a b 0 []
+let closed_hand_tiles h = h.tiles
+let open_hand_tiles h = h.melds
 
 let generate_all_numbers suit : tile list =
   List.map (fun x -> (suit, Integer x, false)) [ 1; 2; 3; 4; 6; 7; 8; 9 ]
@@ -240,7 +243,8 @@ let compare_tile (a : tile) (b : tile) : int =
 
 (* Temporary, need to properly deal to 4 people at once *)
 let rec hand_draw_helper (h : tile list) wall (n : int) : hand * wall =
-  if n = 0 then ({ tiles = List.stable_sort compare_tile h; melds = [] }, wall)
+  if n = 0 then
+    ({ draw = None; tiles = List.stable_sort compare_tile h; melds = [] }, wall)
   else hand_draw_helper (wall_draw wall :: h) (wall_pop wall) (n - 1)
 
 let hand_draw wall = hand_draw_helper [] wall 13
@@ -260,7 +264,7 @@ let setup_game tiles =
   let dead_wall = sublist 0 13 tiles in
   let player_1 =
     {
-      hand = { tiles = sublist 14 26 tiles; melds = [] };
+      hand = { draw = None; tiles = sublist 14 26 tiles; melds = [] };
       points = 25000;
       riichi = false;
       wind = East;
@@ -269,7 +273,7 @@ let setup_game tiles =
   in
   let player_2 =
     {
-      hand = { tiles = sublist 27 39 tiles; melds = [] };
+      hand = { draw = None; tiles = sublist 27 39 tiles; melds = [] };
       points = 25000;
       riichi = false;
       wind = South;
@@ -278,7 +282,7 @@ let setup_game tiles =
   in
   let player_3 =
     {
-      hand = { tiles = sublist 40 52 tiles; melds = [] };
+      hand = { draw = None; tiles = sublist 40 52 tiles; melds = [] };
       points = 25000;
       riichi = false;
       wind = West;
@@ -287,7 +291,7 @@ let setup_game tiles =
   in
   let player_4 =
     {
-      hand = { tiles = sublist 53 65 tiles; melds = [] };
+      hand = { draw = None; tiles = sublist 53 65 tiles; melds = [] };
       points = 25000;
       riichi = false;
       wind = North;
@@ -328,7 +332,8 @@ let draw_tile board wind =
     | hd :: tl ->
         let new_hand =
           {
-            tiles = hd :: player_to_draw.hand.tiles;
+            draw = Some hd;
+            tiles = player_to_draw.hand.tiles;
             melds = player_to_draw.hand.melds;
           }
         in
@@ -355,4 +360,6 @@ let draw_tile board wind =
     round = board.round;
     wind = board.wind;
   }
+(* TODO: Deal with discarding tile from hand here *)
+
 (* TODO: Deal with discarding tile from hand here *)

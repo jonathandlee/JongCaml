@@ -83,3 +83,7 @@ val hand_draw : wall -> hand * wall
 val setup_game : wall -> hand list * wall
 (** [setup_game wall] deals four hands and sets up the state of the board for
     the game to begin *)
+
+val closed_hand_tiles : hand -> tile list
+
+val open_hand_tiles : hand -> tile list
