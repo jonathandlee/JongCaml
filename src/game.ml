@@ -64,6 +64,16 @@ type state = {
   wind : direction;
 }
 
+type block =
+  | Triple of tile
+  | Sequence of tile * tile * tile
+  | Ryanmen of tile * tile
+  | Kanchan of tile * tile
+  | Penchan of tile * tile
+  | Single of tile
+  | Pair of tile
+  | Invalid
+
 exception OutOfTiles
 
 (** Helper Functions*)
@@ -131,6 +141,10 @@ let rec create_wall wall bound =
   else
     let x = Random.int bound in
     create_wall (swap wall x (bound - 1)) (bound - 1)
+
+let tile_suit t = triple_fst t
+let tile_value t = triple_snd t
+let tile_dora t = triple_third t
 
 let wall_draw wall =
   match wall.tiles with
@@ -238,6 +252,31 @@ let compare_tile (a : tile) (b : tile) : int =
           (let (Color y) = triple_snd b in
            y)
   else x
+
+let combine (b : block) (t : tile) : block =
+  match b with
+  | Triple _ -> Invalid
+  | Sequence (a, b, c) -> Invalid
+  | Ryanmen (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if x - y = 1 || y - x = 2 then Sequence (a, b, t) else Invalid
+      else Invalid
+  | Single a ->
+      if tile_suit a = tile_suit t then
+        match tile_suit a with
+        | Wind | Dragon ->
+            if compare_suit (tile_suit a) (tile_suit t) = 0 then Pair a
+            else Invalid
+        | Pin | Man | Sou ->
+            let (Integer x) = tile_value a in
+            let (Integer y) = tile_value t in
+            if x - y = 1 || y - x = 1 then Ryanmen (a, t) else Invalid
+      else Invalid
+  | Pair a ->
+      if (compare_tile a t = 0) then Triple a else Invalid
+  | _ -> Invalid
 
 [@@@warning "+8"]
 
@@ -362,4 +401,5 @@ let draw_tile board wind =
   }
 (* TODO: Deal with discarding tile from hand here *)
 
+(* TODO: Deal with discarding tile from hand here *)
 (* TODO: Deal with discarding tile from hand here *)
