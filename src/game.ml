@@ -77,6 +77,7 @@ type block =
   | Invalid
 
 exception OutOfTiles
+exception EmptyHand
 
 (** Helper Functions*)
 
@@ -192,6 +193,56 @@ let string_of_tile tile : string =
       | Red -> "Red"
       | Green -> "Green"
       | White -> "White")
+
+(* "Pin 4, Pin 9, Man 1, Man 1, Red Man 5, Man 6, Sou 1, Sou 3, Sou 4, Wind
+   East, Wind South, Dragon White, Dragon Green" *)
+
+let string_has_int input = Str.string_match (Str.regexp "[0-9]+$") input 0
+
+[@@@warning "-8"]
+
+let value_of_string (str : string) : value =
+  if string_has_int str then Integer (int_of_string str)
+  else
+    match str with
+    | "East" -> Direction East
+    | "South" -> Direction South
+    | "West" -> Direction West
+    | "North" -> Direction North
+    | "Red" -> Color Red
+    | "Green" -> Color Green
+    | "White" -> Color White
+
+let tile_of_string_red list : tile =
+  let suit =
+    match List.nth list 1 with
+    | "Pin" -> Pin
+    | "Man" -> Man
+    | "Sou" -> Sou
+    | "Wind" -> Wind
+    | "Dragon" -> Dragon
+  in
+  let (value : value) = value_of_string (List.nth list 2) in
+  (suit, value, true)
+
+let tile_of_string_not_red list : tile =
+  let suit =
+    match List.nth list 0 with
+    | "Pin" -> Pin
+    | "Man" -> Man
+    | "Sou" -> Sou
+    | "Wind" -> Wind
+    | "Dragon" -> Dragon
+  in
+  let (value : value) = value_of_string (List.nth list 1) in
+  (suit, value, false)
+
+[@@@warning "+8"]
+
+let tile_of_string (input : string) : tile =
+  let subs = String.split_on_char ' ' input in
+  if List.nth subs 0 = "Red" then tile_of_string_red subs
+  else tile_of_string_not_red subs
 
 let compare_suit (a : suit) (b : suit) : int =
   let x =
@@ -416,12 +467,27 @@ let draw_tile board wind =
 (* TODO: Deal with discarding tile from hand here *)
 
 (* does not deal with melds *)
-let rec string_of_hand tiles =
+let rec string_of_hand (tiles : tile list) =
   match tiles with
   | [] -> ""
   | hd :: tl ->
       if tl = [] then string_of_tile hd
       else string_of_tile hd ^ ", " ^ string_of_hand tl
 
-(* let discard_tile hand = *)
-(* let discard_tile hand = *)
+let print_hand hand = print_endline ("Your hand is: " ^ hand)
+
+(* Need a more efficient method than this *)
+let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
+    =
+  let new_list = if new_list = [] then [] else new_list in
+  match list with
+  | [] -> raise EmptyHand
+  | hd :: tl ->
+      if hd = item then tl @ new_list
+      else remove_from_list tl (hd :: new_list) item
+
+let discard_tile hand =
+  let curr_hand = string_of_hand hand in
+  let _ = print_hand curr_hand in
+  let user_input = read_line () in
+  remove_from_list hand [] (tile_of_string user_input)
