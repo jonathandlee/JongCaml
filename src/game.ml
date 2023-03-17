@@ -102,6 +102,8 @@ let swap lst a b = swap_helper lst lst a b 0 []
 let closed_hand_tiles h = h.tiles
 let open_hand_tiles h = h.melds
 
+let drawn_tile h = match h.draw with Some x -> x | None -> raise EmptyHand
+
 (** Maniupulating quads (players) *)
 let quad_fst (w, x, y, z) = w
 

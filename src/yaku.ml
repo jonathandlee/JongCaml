@@ -34,7 +34,9 @@ let complete (h : hand) : block list option =
   try
     Some
       (List.nth
-         (prep_hand_helper (open_hand_tiles h @ closed_hand_tiles h) [ [] ] 5)
+         (prep_hand_helper
+            ((drawn_tile h :: open_hand_tiles h) @ closed_hand_tiles h)
+            [ [] ] 5)
          0)
   with
   | Failure "nth" -> None
