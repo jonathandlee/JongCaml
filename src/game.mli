@@ -95,6 +95,9 @@ val closed_hand_tiles : hand -> tile list
 
 val open_hand_tiles : hand -> tile list
 
+val drawn_tile : hand -> tile
+(** [drawn_tile h] returns the currently in draw tile of a hand. Raises OutofTiles exception if hand has no currently drawn tile.*)
+
 val combine : block -> tile -> block
 
 val create_single : tile -> block
