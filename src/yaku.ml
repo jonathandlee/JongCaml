@@ -30,10 +30,15 @@ let rec prep_hand_helper (h : tile list) (b : block list list) (n : int) :
            (List.fold_right (fun x y -> generate_subsets ht x @ y) b []))
         n
 
-let complete (h : hand) : bool =
-  List.length
-    (prep_hand_helper (open_hand_tiles h @ closed_hand_tiles h) [ [] ] 5)
-  >= 1
+let complete (h : hand) : block list option =
+  try
+    Some
+      (List.nth
+         (prep_hand_helper (open_hand_tiles h @ closed_hand_tiles h) [ [] ] 5)
+         0)
+  with
+  | Failure "nth" -> None
+  | _ -> None
 
 (**
     ((pre @ [ nb ] @ t) :: subsets))
