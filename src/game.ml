@@ -486,8 +486,15 @@ let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
       if hd = item then tl @ new_list
       else remove_from_list tl (hd :: new_list) item
 
-let discard_tile hand =
+let discard_tile hand drawn_tile =
+  let drawn_tile =
+    match drawn_tile with
+    | Some drawn_tile -> [ drawn_tile ]
+    | None -> []
+  in
+  let hand = sort_tiles (drawn_tile @ hand) in
   let curr_hand = string_of_hand hand in
   let _ = print_hand curr_hand in
+  let _ = print_endline "Please choose a tile to discard." in
   let user_input = read_line () in
   remove_from_list hand [] (tile_of_string user_input)
