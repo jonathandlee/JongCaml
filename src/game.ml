@@ -76,8 +76,9 @@ type block =
   | Pair of tile
   | Invalid
 
-exception OutOfTiles
 exception EmptyHand
+exception OutOfTiles
+exception InvalidSuit of string
 
 (** Helper Functions*)
 
@@ -101,8 +102,6 @@ let triple_third (x, y, z) = z
 let swap lst a b = swap_helper lst lst a b 0 []
 let closed_hand_tiles h = h.tiles
 let open_hand_tiles h = h.melds
-
-let drawn_tile h = match h.draw with Some x -> x | None -> raise EmptyHand
 
 (** Maniupulating quads (players) *)
 let quad_fst (w, x, y, z) = w
@@ -133,8 +132,6 @@ let generate_all_winds directions : tile list =
 let quadruple f vals : tile list =
   List.fold_right (fun a b -> f vals @ b) [ 1; 2; 3; 4 ] []
 
-(** Create an ordered list of every Mahjong Tile. Yes, I decided to go with this
-    solution.*)
 let all_tiles : tile list =
   quadruple generate_all_numbers Pin
   @ quadruple generate_all_numbers Man
@@ -144,9 +141,6 @@ let all_tiles : tile list =
   @ generate_fives Pin @ generate_fives Man @ generate_fives Sou
   @ generate_red_fives [ Pin; Man; Sou ]
 
-(** Shuffle tiles (this creates the wall)*)
-
-(* n log(n) time *)
 let shuffle tiles =
   let x = List.map (fun y -> (Random.bits (), y)) tiles in
   let z = List.sort compare x in
@@ -195,9 +189,6 @@ let string_of_tile tile : string =
       | Red -> "Red"
       | Green -> "Green"
       | White -> "White")
-
-(* "Pin 4, Pin 9, Man 1, Man 1, Red Man 5, Man 6, Sou 1, Sou 3, Sou 4, Wind
-   East, Wind South, Dragon White, Dragon Green" *)
 
 let string_has_int input = Str.string_match (Str.regexp "[0-9]+$") input 0
 
@@ -357,6 +348,65 @@ let rec sublist start_pos end_pos list =
       in
       if start_pos > 0 then tail else hd :: tail
 
+let determine_player (players : player * player * player * player) wind =
+  match players with
+  | a, b, c, d ->
+      if a.wind = wind then a
+      else if b.wind = wind then b
+      else if c.wind = wind then c
+      else d
+
+let update_players (players : player * player * player * player)
+    (updated_player : player) =
+  match players with
+  | a, b, c, d ->
+      if a.wind = updated_player.wind then (updated_player, b, c, d)
+      else if b.wind = updated_player.wind then (a, updated_player, c, d)
+      else (a, b, c, updated_player)
+
+let rec string_of_hand (tiles : tile list) =
+  match tiles with
+  | [] -> ""
+  | hd :: tl ->
+      if tl = [] then string_of_tile hd
+      else string_of_tile hd ^ ", " ^ string_of_hand tl
+
+let print_hand hand = print_endline ("Your hand is: " ^ hand)
+
+let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
+    =
+  let new_list = if new_list = [] then [] else new_list in
+  match list with
+  | [] -> raise EmptyHand
+  | hd :: tl ->
+      if hd = item then tl @ new_list
+      else remove_from_list tl (hd :: new_list) item
+
+let discard_tile_helper hand drawn_tile =
+  let drawn_tile =
+    match drawn_tile with
+    | Some drawn_tile -> [ drawn_tile ]
+    | None -> []
+  in
+  let hand = sort_tiles (drawn_tile @ hand) in
+  let curr_hand = string_of_hand hand in
+  let _ = print_hand curr_hand in
+  let _ = print_endline "Please choose a tile to discard." in
+  let user_input = read_line () in
+  remove_from_list hand [] (tile_of_string user_input)
+
+let tiles_of_melds_helper meld =
+  match meld with
+  | Chi (x, y, z) -> [ x; y; z ]
+  | Kan (x, _, _, _) -> [ x; x; x; x ]
+  | Pon (x, _, _) -> [ x; x; x ]
+
+let rec tiles_of_melds (melds : meld list) =
+  match melds with
+  | [] -> []
+  | hd :: tl -> tiles_of_melds_helper hd @ tiles_of_melds tl
+
+(* Main Functions: *)
 let setup_game tiles =
   let dead_wall = sublist 0 13 tiles in
   let player_1 =
@@ -412,26 +462,13 @@ let setup_game tiles =
     wind = East;
   }
 
-let update_players (players : player * player * player * player)
-    (updated_player : player) =
-  match players with
-  | a, b, c, d ->
-      if a.wind = updated_player.wind then (updated_player, b, c, d)
-      else if b.wind = updated_player.wind then (a, updated_player, c, d)
-      else (a, b, c, updated_player)
-
-(* TODO: This does not take into account drawing from dead wall *)
-let draw_tile board wind =
-  let player_to_draw =
-    match board.players with
-    | a, b, c, d ->
-        if a.wind = wind then a
-        else if b.wind = wind then b
-        else if c.wind = wind then c
-        else d
-  in
+let draw_tile board wind from_dead =
+  let player_to_draw = determine_player board.players wind in
   let updated_player_wall =
-    match board.wall.tiles with
+    let wall_to_draw =
+      if from_dead then board.wall.tiles else board.dead_wall
+    in
+    match wall_to_draw with
     | [] -> raise OutOfTiles
     | hd :: tl ->
         let new_hand =
@@ -466,37 +503,47 @@ let draw_tile board wind =
     round = board.round;
     wind = board.wind;
   }
-(* TODO: Deal with discarding tile from hand here *)
 
-(* does not deal with melds *)
-let rec string_of_hand (tiles : tile list) =
-  match tiles with
-  | [] -> ""
-  | hd :: tl ->
-      if tl = [] then string_of_tile hd
-      else string_of_tile hd ^ ", " ^ string_of_hand tl
-
-let print_hand hand = print_endline ("Your hand is: " ^ hand)
-
-(* Need a more efficient method than this *)
-let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
-    =
-  let new_list = if new_list = [] then [] else new_list in
-  match list with
-  | [] -> raise EmptyHand
-  | hd :: tl ->
-      if hd = item then tl @ new_list
-      else remove_from_list tl (hd :: new_list) item
-
-let discard_tile hand drawn_tile =
-  let drawn_tile =
-    match drawn_tile with
-    | Some drawn_tile -> [ drawn_tile ]
-    | None -> []
+let discard_tile board wind =
+  let player_to_discard = determine_player board.players wind in
+  let player_hand = player_to_discard.hand in
+  let new_hand =
+    {
+      draw = None;
+      tiles = discard_tile_helper player_hand.tiles player_hand.draw;
+      melds = player_to_discard.hand.melds;
+    }
   in
-  let hand = sort_tiles (drawn_tile @ hand) in
-  let curr_hand = string_of_hand hand in
-  let _ = print_hand curr_hand in
-  let _ = print_endline "Please choose a tile to discard." in
-  let user_input = read_line () in
-  remove_from_list hand [] (tile_of_string user_input)
+  let new_player =
+    {
+      hand = new_hand;
+      points = player_to_discard.points;
+      riichi = player_to_discard.riichi;
+      wind = player_to_discard.wind;
+      discards = player_to_discard.discards;
+    }
+  in
+  {
+    wall = board.wall;
+    dead_wall = board.dead_wall;
+    dora = board.dora;
+    hidden_dora = board.hidden_dora;
+    players = update_players board.players new_player;
+    round = board.round;
+    wind = board.wind;
+  }
+
+let round_wind board = board.wind
+let round_number board = board.round
+let get_player board wind = determine_player board.players wind
+let tile_suit tile = triple_fst tile
+let tile_value tile = triple_snd tile
+let tile_dora tile = if triple_third tile = true then 1 else 0
+let tiles_left wall = List.length wall.tiles
+let closed_hand_tiles (hand : hand) = hand.tiles
+let open_hand_tiles hand = tiles_of_melds hand.melds
+
+let drawn_tile hand =
+  match hand.draw with
+  | Some x -> x
+  | None -> raise EmptyHand

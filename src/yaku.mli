@@ -11,5 +11,6 @@ type prep_hand
 
 val complete : hand -> block list option
 (** Check if a hand is complete (4 runs/triples and a pair). *)
-val prep_hand : hand -> prep_hand
-(** Generate all possible proto-hands (hands consisting only of protoruns and pairs). For now only stores completed hands!*)
+(* val prep_hand : hand -> prep_hand [TODO: COMMENTED OUT SO DUNE BUILD RUNS] *)
+(** Generate all possible proto-hands (hands consisting only of protoruns and
+   pairs). For now only stores completed hands!*)

@@ -11,33 +11,46 @@
 
     Actions (chii, pon, kan) and point calculation will be in separate modules. *)
 
-type state
-(** The state of the Mahjong game. Contains information on the wall, players,
-    round and wind *)
+type direction
+(** Direction of a wind tile. Can be North, South, East, or West *)
 
-type hand
-(** Hand of an individual player. Separates tiles and melds*)
-
-type tile
-(** The tiles in Mahjong*)
-
-type meld
-(** Either a chi, pon, or kan sequence*)
+type color
+(** Color of a dragon tile. Can be Red, Green, or White *)
 
 type value
+(** Value of a tile. Can be and Integer, Direction, or Color *)
 
 type suit
-(** All suits and honors in Mahjong*)
+(** All suits and honors in Mahjong. Can be Pin, Man, Sou, Wind, or Dragon. *)
+
+type tile
+(** The tiles in Mahjong. Represented by a value, suit, and boolean. *)
+
+type meld
+(** Stores open triples or quadruples. Can be either a chi, pon, or kan sequence *)
+
+type hand
+(** Hand of an individual player. Contains the most recently drawn tile and the
+    other tiles in a user's hand, separated into tiles and melds. *)
 
 type wall
-(** Wall from which tiles are drawn*)
+(** Wall from which tiles are drawn. Contains a list of tiles and the current
+    position of the board. *)
 
 type player
 (** Contains information about a player's hand, points, riichi, position (North,
     East, South, or West), and discards *)
 
-type block    
+type state
+(** The state of the Mahjong game. Contains information on the wall, dead wall,
+    dora, hidden dora, players, round and wind *)
 
+type block
+(** Represents any given block of tiles. Can be a Triple, Sequence, Ryanmen,
+    Kanchan, Penchan, Single, or Pair. *)
+
+exception EmptyHand
+(** Raised when a players hand is empty *)
 
 exception InvalidSuit of string
 (** Raised when an invalid suit is given when initializing the game *)
@@ -45,61 +58,51 @@ exception InvalidSuit of string
 exception OutOfTiles
 (** Raised when there are no more tiles in the wall to draw*)
 
-val game_init : int -> suit -> state
-(** [game_init n] creates a state representing the game in round [n] and [suit]
-    wind. Requires: suit is a wind*)
+val setup_game : tile list -> state
+(** [setup_game t] deals four hands using tiles t and sets up the state of the
+    board for the game to begin. *)
 
-val round_wind : state -> suit
-(** [round_wind s] gives a [suit] representing the main round wind. Useful for
-    comparisons!*)
+val draw_tile : state -> direction -> bool -> state
+(** [draw_tile board wind from_dead] draws a tile from either the wall or dead
+    wall (depending on value of from_dead) to the hand of the player with wind
+    wind. This occurrs in the game state board. *)
+
+val discard_tile : state -> direction -> state
+(** [discard tile board wind] discards a user defined tile from the hand of
+    player with wind wind in game state board. *)
+
+val round_wind : state -> direction
+(** [round_wind s] gives a [direction] representing the main round wind. Useful
+    for comparisons! *)
 
 val round_number : state -> int
-(** [round_number s] gives the number of round of the game.*)
+(** [round_number s] gives the number of round of the game. *)
 
-val get_player : state -> int -> player
-(** [get_player s n] gives the nth player of the game (East being the first
-    player and going in a ccw direction)*)
+val get_player : state -> direction -> player
+(** [get_player s d] gives the player with wind d from game s. *)
 
 val tile_suit : tile -> suit
+(** [tile_suit t] gives the suit of tile t. *)
 
 val tile_value : tile -> value
-(** [tile_value a] gives the value. For instance, a tile representing the "One
-    Pin" will return the suit [Pin of 1]. *)
+(** [tile_value t] gives the value of tile t. *)
 
 val tile_dora : tile -> int
-(** [tile_dora a] gives the dora value of the current tile. For instance, a red
-    five would have a dora value of one. *)
-
-val wall_draw : wall -> tile
-(** [wall_draw w] draws first tile in the wall. Requires: the wall is not out of
-    tiles. Raises: OutOfTiles exception. *)
-
-val wall_pop : wall -> wall
-(** [wall_pop w] returns the wall after a tile has been drawn. *)
-
-val deadwall_draw : wall -> tile
-(** [deadwall_draw w] draws first tile from the dead wall.*)
+(** [tile_dora a] gives the dora value of the current tile. *)
 
 val tiles_left : wall -> int
-(** [tiles_left w] gives the number of tiles left in the wall.*)
-
-val hand_draw : wall -> hand * wall
-(** [hand_draw w] creates a hand by drawing 13 tiles from the wall and returns
-    both the hand and the remaining wall.*)
-
-val setup_game : wall -> hand list * wall
-(** [setup_game wall] deals four hands and sets up the state of the board for
-    the game to begin *)
+(** [tiles_left w] gives the number of tiles left in the wall. *)
 
 val closed_hand_tiles : hand -> tile list
+(** [closed_hand_tiles h] gives the tiles in the closed section of hand h. *)
 
 val open_hand_tiles : hand -> tile list
+(** [open_hand_tiles h] gives the tiles in the open section of hand h. *)
 
 val drawn_tile : hand -> tile
-(** [drawn_tile h] returns the currently in draw tile of a hand. Raises OutofTiles exception if hand has no currently drawn tile.*)
+(** [drawn_tile h] returns the currently in draw tile of a hand. Raises
+    OutofTiles exception if hand has no currently drawn tile. *)
 
 val combine : block -> tile -> block
-
 val create_single : tile -> block
-
 val invalid_block : block
