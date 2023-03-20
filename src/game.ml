@@ -128,25 +128,8 @@ let shuffle tiles =
   let z = List.sort compare x in
   List.map snd z
 
-let rec create_wall wall bound =
-  if bound = 0 then { tiles = wall; position = 0 }
-  else
-    let x = Random.int bound in
-    create_wall (swap wall x (bound - 1)) (bound - 1)
-
 let tile_suit t = triple_fst t
 let tile_value t = triple_snd t
-let tile_dora t = triple_third t
-
-let wall_draw wall =
-  match wall.tiles with
-  | [] -> raise OutOfTiles
-  | h :: t -> h
-
-let wall_pop wall =
-  match wall.tiles with
-  | [] -> raise OutOfTiles
-  | h :: t -> { tiles = t; position = wall.position + 1 }
 
 let string_of_tile (tile : tile) : string =
   (if triple_third tile then "Red " else "")
@@ -535,8 +518,6 @@ let discard_tile board wind =
 let round_wind board = board.wind
 let round_number board = board.round
 let get_player board wind = determine_player board.players wind
-let tile_suit tile = triple_fst tile
-let tile_value tile = triple_snd tile
 let tile_dora tile = if triple_third tile = true then 1 else 0
 let tiles_left wall = List.length wall.tiles
 let closed_hand_tiles (hand : hand) = hand.tiles
