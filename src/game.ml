@@ -102,15 +102,6 @@ let triple_third (x, y, z) = z
 let swap lst a b = swap_helper lst lst a b 0 []
 let closed_hand_tiles h = h.tiles
 let open_hand_tiles h = h.melds
-
-(** Maniupulating quads (players) *)
-let quad_fst (w, x, y, z) = w
-
-let quad_snd (w, x, y, z) = x
-let quad_trd (w, x, y, z) = y
-let quad_frth (w, x, y, z) = z
-let invalid_block = Invalid
-let create_single t = Single t
 let invalid_block = Invalid
 let create_single t = Single t
 
@@ -131,15 +122,6 @@ let generate_all_winds directions : tile list =
 
 let quadruple f vals : tile list =
   List.fold_right (fun a b -> f vals @ b) [ 1; 2; 3; 4 ] []
-
-let all_tiles : tile list =
-  quadruple generate_all_numbers Pin
-  @ quadruple generate_all_numbers Man
-  @ quadruple generate_all_numbers Sou
-  @ quadruple generate_all_dragons [ Red; Green; White ]
-  @ quadruple generate_all_winds [ East; South; West; North ]
-  @ generate_fives Pin @ generate_fives Man @ generate_fives Sou
-  @ generate_red_fives [ Pin; Man; Sou ]
 
 let shuffle tiles =
   let x = List.map (fun y -> (Random.bits (), y)) tiles in
@@ -166,7 +148,7 @@ let wall_pop wall =
   | [] -> raise OutOfTiles
   | h :: t -> { tiles = t; position = wall.position + 1 }
 
-let string_of_tile tile : string =
+let string_of_tile (tile : tile) : string =
   (if triple_third tile then "Red " else "")
   ^ (match triple_fst tile with
     | Pin -> "Pin"
@@ -190,52 +172,8 @@ let string_of_tile tile : string =
       | Green -> "Green"
       | White -> "White")
 
+(* #load "str.cma";; *)
 let string_has_int input = Str.string_match (Str.regexp "[0-9]+$") input 0
-
-[@@@warning "-8"]
-
-let value_of_string (str : string) : value =
-  if string_has_int str then Integer (int_of_string str)
-  else
-    match str with
-    | "East" -> Direction East
-    | "South" -> Direction South
-    | "West" -> Direction West
-    | "North" -> Direction North
-    | "Red" -> Color Red
-    | "Green" -> Color Green
-    | "White" -> Color White
-
-let tile_of_string_red list : tile =
-  let suit =
-    match List.nth list 1 with
-    | "Pin" -> Pin
-    | "Man" -> Man
-    | "Sou" -> Sou
-    | "Wind" -> Wind
-    | "Dragon" -> Dragon
-  in
-  let (value : value) = value_of_string (List.nth list 2) in
-  (suit, value, true)
-
-let tile_of_string_not_red list : tile =
-  let suit =
-    match List.nth list 0 with
-    | "Pin" -> Pin
-    | "Man" -> Man
-    | "Sou" -> Sou
-    | "Wind" -> Wind
-    | "Dragon" -> Dragon
-  in
-  let (value : value) = value_of_string (List.nth list 1) in
-  (suit, value, false)
-
-[@@@warning "+8"]
-
-let tile_of_string (input : string) : tile =
-  let subs = String.split_on_char ' ' input in
-  if List.nth subs 0 = "Red" then tile_of_string_red subs
-  else tile_of_string_not_red subs
 
 let compare_suit (a : suit) (b : suit) : int =
   let x =
@@ -292,6 +230,42 @@ let compare_color (a : color) (b : color) : int =
 
 [@@@warning "-8"]
 
+let value_of_string (str : string) : value =
+  if string_has_int str then Integer (int_of_string str)
+  else
+    match str with
+    | "East" -> Direction East
+    | "South" -> Direction South
+    | "West" -> Direction West
+    | "North" -> Direction North
+    | "Red" -> Color Red
+    | "Green" -> Color Green
+    | "White" -> Color White
+
+let tile_of_string_red list : tile =
+  let suit =
+    match List.nth list 1 with
+    | "Pin" -> Pin
+    | "Man" -> Man
+    | "Sou" -> Sou
+    | "Wind" -> Wind
+    | "Dragon" -> Dragon
+  in
+  let (value : value) = value_of_string (List.nth list 2) in
+  (suit, value, true)
+
+let tile_of_string_not_red list : tile =
+  let suit =
+    match List.nth list 0 with
+    | "Pin" -> Pin
+    | "Man" -> Man
+    | "Sou" -> Sou
+    | "Wind" -> Wind
+    | "Dragon" -> Dragon
+  in
+  let (value : value) = value_of_string (List.nth list 1) in
+  (suit, value, false)
+
 let compare_tile (a : tile) (b : tile) : int =
   let x = compare_suit (triple_fst a) (triple_fst b) in
   if x = 0 then
@@ -336,6 +310,11 @@ let combine (b : block) (t : tile) : block =
   | _ -> Invalid
 
 [@@@warning "+8"]
+
+let tile_of_string (input : string) : tile =
+  let subs = String.split_on_char ' ' input in
+  if List.nth subs 0 = "Red" then tile_of_string_red subs
+  else tile_of_string_not_red subs
 
 let sort_tiles tiles = List.stable_sort compare_tile tiles
 
@@ -405,6 +384,16 @@ let rec tiles_of_melds (melds : meld list) =
   match melds with
   | [] -> []
   | hd :: tl -> tiles_of_melds_helper hd @ tiles_of_melds tl
+
+let rec string_of_list_helper list =
+  match list with
+  | [] -> ""
+  | hd :: tl -> hd ^ "; " ^ string_of_list_helper tl
+
+let string_of_list list =
+  let str_lst = List.map string_of_tile list in
+  let str = string_of_list_helper str_lst in
+  "[" ^ str ^ "]"
 
 (* Main Functions: *)
 let setup_game =
@@ -552,6 +541,11 @@ let tile_dora tile = if triple_third tile = true then 1 else 0
 let tiles_left wall = List.length wall.tiles
 let closed_hand_tiles (hand : hand) = hand.tiles
 let open_hand_tiles hand = tiles_of_melds hand.melds
+
+let string_of_list list =
+  let str_lst = List.map string_of_tile list in
+  let str = string_of_list_helper str_lst in
+  "[" ^ str ^ "]"
 
 let drawn_tile hand =
   match hand.draw with

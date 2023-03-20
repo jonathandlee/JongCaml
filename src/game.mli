@@ -103,6 +103,10 @@ val drawn_tile : hand -> tile
 (** [drawn_tile h] returns the currently in draw tile of a hand. Raises
     OutofTiles exception if hand has no currently drawn tile. *)
 
+val string_of_list : tile list -> string
+(** [string_of_list l] converts the list l to a string representation in the
+    form "[l1; l2; l3; ... ln; ]" *)
+
 val combine : block -> tile -> block
 val create_single : tile -> block
 val invalid_block : block
