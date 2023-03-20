@@ -26,7 +26,7 @@ let string_of_tile (x : tile) = tile_suit x
 let dir = Sys.getcwd ()
 let image_file = dir^"/"^"tony.jpg"
 let bg = dir ^ "/" ^ "newtiles" ^ "/" ^ "tony.jpg"
-let hand_to_widget (h : string) = W.image (dir ^ "/" ^ h ^ ".png")
+let hand_to_widget (h : string) = W.image (dir ^ "/newtiles/" ^ h ^ ".png")
 let bamboo = dir^"/"^"bamboo1.png"
 
 let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
