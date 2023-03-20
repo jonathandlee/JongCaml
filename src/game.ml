@@ -378,6 +378,9 @@ let string_of_list list =
   let str = string_of_list_helper str_lst in
   "[" ^ str ^ "]"
 
+let string_list_of_tile list = List.map string_of_tile list
+let hand_of_player (p : player) = p.hand
+
 (* Main Functions: *)
 let setup_game =
   let tiles =

@@ -107,6 +107,13 @@ val string_of_list : tile list -> string
 (** [string_of_list l] converts the list l to a string representation in the
     form "[l1; l2; l3; ... ln; ]" *)
 
+val string_list_of_tile : tile list -> string list
+(** [string_list_of_tile l] converts list l into a list representation of each
+    tile*)
+
+val hand_of_player : player -> hand
+(** [hand_of_player p] gets the current hand of player p*)
+
 val combine : block -> tile -> block
 val create_single : tile -> block
 val invalid_block : block
