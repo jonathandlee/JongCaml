@@ -58,7 +58,7 @@ exception InvalidSuit of string
 exception OutOfTiles
 (** Raised when there are no more tiles in the wall to draw*)
 
-val setup_game : tile list -> state
+val setup_game : state
 (** [setup_game t] deals four hands using tiles t and sets up the state of the
     board for the game to begin. *)
 

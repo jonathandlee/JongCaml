@@ -407,7 +407,17 @@ let rec tiles_of_melds (melds : meld list) =
   | hd :: tl -> tiles_of_melds_helper hd @ tiles_of_melds tl
 
 (* Main Functions: *)
-let setup_game tiles =
+let setup_game =
+  let tiles =
+    shuffle
+      (quadruple generate_all_numbers Pin
+      @ quadruple generate_all_numbers Man
+      @ quadruple generate_all_numbers Sou
+      @ quadruple generate_all_dragons [ Red; Green; White ]
+      @ quadruple generate_all_winds [ East; South; West; North ]
+      @ generate_fives Pin @ generate_fives Man @ generate_fives Sou
+      @ generate_red_fives [ Pin; Man; Sou ])
+  in
   let dead_wall = sublist 0 13 tiles in
   let player_1 =
     {
