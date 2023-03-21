@@ -6,35 +6,38 @@ module W = Widget
 module L = Layout
 module T = Trigger
 
-let thick_grey_line =
-  Style.mk_line ~color:Draw.(opaque grey) ~width:3 ~style:Solid ()
 
-let round_blue_box =
-  let open Style in
-  let border = mk_border ~radius:25 thick_grey_line in
-  create ~border
-    ~background:(color_bg Draw.(opaque @@ find_color "lightblue"))
-    ()
 
-let shadow_box =
-  let open Style in
-  create ~background:(opaque_bg Draw.blue)
-    ~shadow:(mk_shadow ~width:400 ~radius:400 ())
-    ()
 
 let string_of_tile (x : tile) = tile_suit x
 let dir = Sys.getcwd ()
-let image_file = dir^"/"^"tony.jpg"
-let bg = dir ^ "/" ^ "newtiles" ^ "/" ^ "tony.jpg"
-let hand_to_widget (h : string) = W.image (dir ^ "/newtiles/" ^ h ^ ".png")
+let image_file = dir^"/src/newtiles/"^"tony.jpg"
+let hand_to_widget (h : string) = W.image (dir ^ "/src/newtiles/" ^ h ^ ".png")
 let bamboo = dir^"/"^"bamboo1.png"
+let create_button (x:int) = let l = W.label "Drop" in 
+
+let r = L.tower ~name:"tile button" ~margins:0 [L.resident ~w:30 ~h:20 l] in L.setx r x; L.sety r 700; r
+
+let wipe = T.push_quit ()
+
 
 let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
-let render tl = let string_tiles = (string_list_of_tile tl) in let style = Style.(of_shadow (mk_shadow ~width:800 ~radius:640 ())) in
-let create_menu_button x y = let l = W.label "click" in 
-let r = L.tower ~name:"tile button" ~margins:0 [L.resident ~w:30 ~h:20 l] in L.setx r x; L.sety r y; r in
-(**let image = W.image ~w:880 ~h:800 image_file in*)
-let menu = let open Menu in [{label = Layout (create_menu_button 200 200); content = Action (fun _ -> print_endline "START")}] in
+
+
+
+
+let rec render (game:state) = 
+  let wind = round_wind game in
+let p = get_player game wind in
+let hand = hand_of_player p in
+let tl = closed_hand_tiles hand in
+  let tl = (try (drawn_tile hand)::tl with EmptyHand -> tl ) in
+  let string_tiles = (string_list_of_tile tl) in let style = Style.(of_shadow (mk_shadow ~width:800 ~radius:640 ())) in
+
+
+
+let image = W.image ~w:880 ~h:800 image_file in
+let image = L.flat [L.resident image] in
 let box = W.box ~w:720 ~h:600 ~style () in 
 let n = Array.init 13 (fun _ -> W.check_box ()) in
 let ns = L.flat_of_w (Array.to_list n) in
@@ -47,8 +50,12 @@ let es = L.tower_of_w (Array.to_list e) in
 let w = Array.init 13 (fun _ -> W.check_box ()) in
 let ws = L.tower_of_w (Array.to_list w) in
 let layout = L.tower( [L.flat [ws;(L.tower [ns;L.tower_of_w [box]] );es];ss]) in 
-let _ = Menu.create (Menu.Custom menu) in
-(* let layout = L.superpose [image;layout] in *)
+let layout = L.superpose [image;layout] in 
+(** Create Menu*)
+let create_menu_buttonn (x:int) = let open Menu in {label = Layout (create_button x); content = Action (fun _ ->  print_endline (string_of_list tl); render (discard_tile (draw_tile game wind false) wind); T.push_quit ())} in
+let create_menu_buttons = List.map create_menu_buttonn [200;240;280;320;360;400;440;480;520;560;600;640;680;720] in
+let menu = create_menu_buttons in
+let _ = Menu.create ~dst:layout (Menu.Custom menu)  in
 L.animate_x layout (Avar.fromto 0 0);
 L.animate_y layout (Avar.fromto 0 0);
 L.setx ns 240;
