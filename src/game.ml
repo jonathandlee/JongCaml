@@ -353,9 +353,13 @@ let discard_tile_helper hand drawn_tile =
   let hand = sort_tiles (drawn_tile @ hand) in
   let curr_hand = string_of_hand hand in
   let _ = print_hand curr_hand in
+  let _ =
+    print_endline ("Your Draw: " ^ string_of_tile (List.nth drawn_tile 0))
+  in
   let _ = print_endline "Please choose a tile to discard." in
   let user_input = read_line () in
-  remove_from_list hand [] (tile_of_string user_input)
+  let user_tile = tile_of_string user_input in
+  sort_tiles (remove_from_list hand [] user_tile)
 
 let tiles_of_melds_helper meld =
   match meld with
@@ -447,11 +451,12 @@ let setup_game =
     wind = East;
   }
 
+(* does not properly work with dead wall *)
 let draw_tile board wind from_dead =
   let player_to_draw = determine_player board.players wind in
   let updated_player_wall =
     let wall_to_draw =
-      if from_dead then board.wall.tiles else board.dead_wall
+      if from_dead then board.dead_wall else board.wall.tiles
     in
     match wall_to_draw with
     | [] -> raise OutOfTiles
@@ -535,3 +540,37 @@ let drawn_tile hand =
   match hand.draw with
   | Some x -> x
   | None -> raise EmptyHand
+
+(* TEST *)
+let test =
+  discard_tile
+    (draw_tile
+       (discard_tile
+          (draw_tile
+             (discard_tile
+                (draw_tile
+                   (discard_tile
+                      (draw_tile
+                         (discard_tile
+                            (draw_tile
+                               (discard_tile
+                                  (draw_tile
+                                     (discard_tile
+                                        (draw_tile
+                                           (discard_tile
+                                              (draw_tile setup_game East false)
+                                              East)
+                                           East false)
+                                        East)
+                                     East false)
+                                  East)
+                               East false)
+                            East)
+                         East false)
+                      East)
+                   East false)
+                East)
+             East false)
+          East)
+       East false)
+    East
