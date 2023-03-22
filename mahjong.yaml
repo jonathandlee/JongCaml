@@ -1,0 +1,29 @@
+---
+# Members of your group.
+group:
+  - name: Jonathan Lee
+    netid: jdl282
+  - name: Alexander Peek 
+    netid: ap2298
+  - name: Jonathan Yen
+    netid: jfy7
+# Your PM.
+pm:
+  name: Zak Kent
+  netid: Zak33
+# Set to false if you don't want your gallery entry to be public.
+publish: true
+# Pithy title
+title: "Ocaml Mahjong"
+# OK if this is a Cornell Github link, but public gallery viewers won't be able to see it.
+git-repo: "https://github.coecis.cornell.edu/ap2298/3110Project"
+# If you have no demo screencast, replace the url string with an empty string ""
+demo-video-url: ""
+# Write a short, attention-grabbing description of your project.
+desc: >
+  Our project is an implementation of Japanese Ricchii Mahjong in Ocaml. It 
+  supports standard 4 player mahjong against other players as well as single
+  player interactivity. The project features a fully functioning gui system
+  that gives players a visual representation of their current hand, as well as 
+  all of their discards and other players discards.
+
