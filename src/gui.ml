@@ -18,7 +18,9 @@ let create_button (x:int) = let l = W.label "Drop" in
 
 let r = L.tower ~name:"tile button" ~margins:0 [L.resident ~w:30 ~h:20 l] in L.setx r x; L.sety r 700; r
 
-let wipe = T.push_quit ()
+let wtf () = print_endline "whatthefuck"
+
+
 
 
 let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
@@ -27,7 +29,9 @@ let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
 
 
 let rec render (game:state) = 
+  
   let wind = round_wind game in
+  let game = draw_tile game wind false in
 let p = get_player game wind in
 let hand = hand_of_player p in
 let tl = closed_hand_tiles hand in
@@ -52,7 +56,9 @@ let ws = L.tower_of_w (Array.to_list w) in
 let layout = L.tower( [L.flat [ws;(L.tower [ns;L.tower_of_w [box]] );es];ss]) in 
 let layout = L.superpose [image;layout] in 
 (** Create Menu*)
-let create_menu_buttonn (x:int) = let open Menu in {label = Layout (create_button x); content = Action (fun _ ->  print_endline (string_of_list tl); render (discard_tile (draw_tile game wind false) wind); T.push_quit ())} in
+let create_menu_buttonn (x:int) = let open Menu in {label = Layout (create_button x); content = Action (fun _ ->  print_endline (string_of_list tl);
+ render (discard_tile game wind); 
+ T.push_quit ())} in
 let create_menu_buttons = List.map create_menu_buttonn [200;240;280;320;360;400;440;480;520;560;600;640;680;720] in
 let menu = create_menu_buttons in
 let _ = Menu.create ~dst:layout (Menu.Custom menu)  in

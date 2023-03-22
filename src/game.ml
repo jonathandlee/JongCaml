@@ -542,35 +542,8 @@ let drawn_tile hand =
   | None -> raise EmptyHand
 
 (* TEST *)
-let test =
-  discard_tile
-    (draw_tile
-       (discard_tile
-          (draw_tile
-             (discard_tile
-                (draw_tile
-                   (discard_tile
-                      (draw_tile
-                         (discard_tile
-                            (draw_tile
-                               (discard_tile
-                                  (draw_tile
-                                     (discard_tile
-                                        (draw_tile
-                                           (discard_tile
-                                              (draw_tile setup_game East false)
-                                              East)
-                                           East false)
-                                        East)
-                                     East false)
-                                  East)
-                               East false)
-                            East)
-                         East false)
-                      East)
-                   East false)
-                East)
-             East false)
-          East)
-       East false)
-    East
+(* let test = discard_tile (draw_tile (discard_tile (draw_tile (discard_tile
+   (draw_tile (discard_tile (draw_tile (discard_tile (draw_tile (discard_tile
+   (draw_tile (discard_tile (draw_tile (discard_tile (draw_tile setup_game East
+   false) East) East false) East) East false) East) East false) East) East
+   false) East) East false) East) East false) East) East false) East *)
