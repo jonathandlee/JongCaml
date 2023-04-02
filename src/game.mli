@@ -11,25 +11,48 @@
 
     Actions (chii, pon, kan) and point calculation will be in separate modules. *)
 
-type direction
+type direction =
+| North
+| South
+| East
+| West
 (** Direction of a wind tile. Can be North, South, East, or West *)
 
-type color
+type color =
+| Red
+| Green
+| White 
 (** Color of a dragon tile. Can be Red, Green, or White *)
 
-type value
+type value =
+| Integer of int
+| Direction of direction
+| Color of color
 (** Value of a tile. Can be and Integer, Direction, or Color *)
 
-type suit
-(** All suits and honors in Mahjong. Can be Pin, Man, Sou, Wind, or Dragon. *)
+type suit =
+  | Pin
+  | Man
+  | Sou
+  | Wind
+  | Dragon
+(** All suits and honors in Mahjong. Can be Pin, Man, Sou, Wind, or
+          Dragon. *)
 
-type tile
+type tile = suit * value * bool
 (** The tiles in Mahjong. Represented by a value, suit, and boolean. *)
 
-type meld
+type meld =
+| Chi of (tile * tile * tile)
+| Pon of (tile * tile * tile)
+| Kan of (tile * tile * tile * tile)
 (** Stores open triples or quadruples. Can be either a chi, pon, or kan sequence *)
 
-type hand
+type hand = {
+    draw : tile option;
+    tiles : tile list;
+    melds : meld list;
+  }
 (** Hand of an individual player. Contains the most recently drawn tile and the
     other tiles in a user's hand, separated into tiles and melds. *)
 
