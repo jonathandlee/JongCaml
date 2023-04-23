@@ -12,23 +12,21 @@
     Actions (chii, pon, kan) and point calculation will be in separate modules. *)
 
 type direction =
-| North
-| South
-| East
-| West
-(** Direction of a wind tile. Can be North, South, East, or West *)
+  | North
+  | South
+  | East
+  | West  (** Direction of a wind tile. Can be North, South, East, or West *)
 
 type color =
-| Red
-| Green
-| White 
-(** Color of a dragon tile. Can be Red, Green, or White *)
+  | Red
+  | Green
+  | White  (** Color of a dragon tile. Can be Red, Green, or White *)
 
 type value =
-| Integer of int
-| Direction of direction
-| Color of color
-(** Value of a tile. Can be and Integer, Direction, or Color *)
+  | Integer of int
+  | Direction of direction
+  | Color of color
+      (** Value of a tile. Can be and Integer, Direction, or Color *)
 
 type suit =
   | Pin
@@ -36,23 +34,24 @@ type suit =
   | Sou
   | Wind
   | Dragon
-(** All suits and honors in Mahjong. Can be Pin, Man, Sou, Wind, or
+      (** All suits and honors in Mahjong. Can be Pin, Man, Sou, Wind, or
           Dragon. *)
 
 type tile = suit * value * bool
 (** The tiles in Mahjong. Represented by a value, suit, and boolean. *)
 
 type meld =
-| Chi of (tile * tile * tile)
-| Pon of (tile * tile * tile)
-| Kan of (tile * tile * tile * tile)
-(** Stores open triples or quadruples. Can be either a chi, pon, or kan sequence *)
+  | Chi of (tile * tile * tile)
+  | Pon of (tile * tile * tile)
+  | Kan of (tile * tile * tile * tile)
+      (** Stores open triples or quadruples. Can be either a chi, pon, or kan
+          sequence *)
 
 type hand = {
-    draw : tile option;
-    tiles : tile list;
-    melds : meld list;
-  }
+  draw : tile option;
+  tiles : tile list;
+  melds : meld list;
+}
 (** Hand of an individual player. Contains the most recently drawn tile and the
     other tiles in a user's hand, separated into tiles and melds. *)
 
@@ -91,6 +90,10 @@ val draw_tile : state -> direction -> bool -> state
     wind. This occurrs in the game state board. *)
 
 val discard_tile : state -> direction -> state
+(** [discard tile board wind] discards a user defined tile from the hand of
+    player with wind wind in game state board. *)
+
+val discard_tile_gui : string -> state -> direction -> state
 (** [discard tile board wind] discards a user defined tile from the hand of
     player with wind wind in game state board. *)
 
