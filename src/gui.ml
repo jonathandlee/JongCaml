@@ -56,10 +56,10 @@ let ws = L.tower_of_w (Array.to_list w) in
 let layout = L.tower( [L.flat [ws;(L.tower [ns;L.tower_of_w [box]] );es];ss]) in 
 let layout = L.superpose [image;layout] in 
 (** Create Menu*)
-let create_menu_buttonn (x:int) = let open Menu in {label = Layout (create_button x); content = Action (fun _ ->  print_endline (string_of_list tl);
- render (discard_tile game wind); 
+let create_menu_buttonn (x) = let open Menu in {label = Layout (create_button (fst x)); content = Action (fun _ ->  print_endline (string_of_list tl);
+ render (discard_tile_gui (List.nth string_tiles (snd x)) game wind); 
  T.push_quit ())} in
-let create_menu_buttons = List.map create_menu_buttonn [200;240;280;320;360;400;440;480;520;560;600;640;680;720] in
+let create_menu_buttons = List.map create_menu_buttonn [(200,0);(240,1);(280,2);(320,3);(360,4);(400,5);(440,6);(480,7);(520,8);(560,9);(600,10);(640,11);(680,12);(720,13)] in
 let menu = create_menu_buttons in
 let _ = Menu.create ~dst:layout (Menu.Custom menu)  in
 L.animate_x layout (Avar.fromto 0 0);

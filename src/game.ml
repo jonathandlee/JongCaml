@@ -547,3 +547,48 @@ let drawn_tile hand =
    (draw_tile (discard_tile (draw_tile (discard_tile (draw_tile setup_game East
    false) East) East false) East) East false) East) East false) East) East
    false) East) East false) East) East false) East) East false) East *)
+
+let discard_tile_helper_2 (inp : string) hand drawn_tile =
+  let drawn_tile =
+    match drawn_tile with
+    | Some drawn_tile -> [ drawn_tile ]
+    | None -> []
+  in
+  let hand = sort_tiles (drawn_tile @ hand) in
+  let curr_hand = string_of_hand hand in
+  let _ = print_hand curr_hand in
+  let _ =
+    print_endline ("Your Draw: " ^ string_of_tile (List.nth drawn_tile 0))
+  in
+  let _ = print_endline "Please choose a tile to discard." in
+  let user_tile = tile_of_string inp in
+  sort_tiles (remove_from_list hand [] user_tile)
+
+let discard_tile_gui inp_tile board wind =
+  let player_to_discard = determine_player board.players wind in
+  let player_hand = player_to_discard.hand in
+  let new_hand =
+    {
+      draw = None;
+      tiles = discard_tile_helper_2 inp_tile player_hand.tiles player_hand.draw;
+      melds = player_to_discard.hand.melds;
+    }
+  in
+  let new_player =
+    {
+      hand = new_hand;
+      points = player_to_discard.points;
+      riichi = player_to_discard.riichi;
+      wind = player_to_discard.wind;
+      discards = player_to_discard.discards;
+    }
+  in
+  {
+    wall = board.wall;
+    dead_wall = board.dead_wall;
+    dora = board.dora;
+    hidden_dora = board.hidden_dora;
+    players = update_players board.players new_player;
+    round = board.round;
+    wind = board.wind;
+  }
