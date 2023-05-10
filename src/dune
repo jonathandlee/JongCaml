@@ -1,4 +1,6 @@
 (library
  (name mahjong)
  (public_name Mahjong)
- (libraries yojson ANSITerminal bogue))
+ (libraries yojson ANSITerminal bogue)
+ (instrumentation
+  (backend bisect_ppx)))

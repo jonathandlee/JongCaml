@@ -39,7 +39,7 @@ let complete (h : hand) : block list option =
             [ [] ] 5)
          0)
   with
-  | Failure "nth" -> None
+  | Failure _ -> None
   | _ -> None
 
 (**

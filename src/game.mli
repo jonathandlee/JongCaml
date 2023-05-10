@@ -95,7 +95,9 @@ val discard_tile : state -> direction -> state
 
 val discard_tile_gui : string -> state -> direction -> state
 (** [discard tile board wind] discards a user defined tile from the hand of
-    player with wind wind in game state board. *)
+    player with wind wind in game state board. This differs from
+    discard_tile_gui in that it takes a discrete value as input, rather than
+    prompting the user to input their response in the console*)
 
 val round_wind : state -> direction
 (** [round_wind s] gives a [direction] representing the main round wind. Useful
@@ -116,6 +118,9 @@ val tile_value : tile -> value
 val tile_dora : tile -> int
 (** [tile_dora a] gives the dora value of the current tile. *)
 
+val get_wall : state -> wall
+(** [get_wall s] gives you a value of type wall*)
+
 val tiles_left : wall -> int
 (** [tiles_left w] gives the number of tiles left in the wall. *)
 
@@ -132,6 +137,9 @@ val drawn_tile : hand -> tile
 val string_of_list : tile list -> string
 (** [string_of_list l] converts the list l to a string representation in the
     form "[l1; l2; l3; ... ln; ]" *)
+
+val string_of_tile : tile -> string
+(** [string_of_tile t] converts tile t into a string representation of itself*)
 
 val string_list_of_tile : tile list -> string list
 (** [string_list_of_tile l] converts list l into a list representation of each

@@ -528,6 +528,7 @@ let round_wind board = board.wind
 let round_number board = board.round
 let get_player board wind = determine_player board.players wind
 let tile_dora tile = if triple_third tile = true then 1 else 0
+let get_wall state = state.wall
 let tiles_left wall = List.length wall.tiles
 let closed_hand_tiles (hand : hand) = hand.tiles
 let open_hand_tiles hand = tiles_of_melds hand.melds
