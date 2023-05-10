@@ -14,7 +14,7 @@ bisect-clean:
 	rm -rf _coverage bisect*.coverage
 
 loc:
-	 cloc --by-file --include-lang=OCaml .
+	 cloc --by-file --include-lang=OCaml src bin
 
 doc:
 	dune build @doc
