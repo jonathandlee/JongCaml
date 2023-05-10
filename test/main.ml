@@ -6,7 +6,8 @@ open Game
 let init_game = setup_game ()
 
 (* [pp_string s] pretty-prints string [s]. *)
-let pp_string s = "\"" ^ s ^ "\""
+
+let create_example_tile (s : suit) (v : value) (b : bool) : tile = (s, v, b)
 
 let rec progress_game (n : int) (game : state) (wind : direction) : state =
   let output_game =
@@ -123,6 +124,22 @@ let count_tiles_left (name : string) (game : state) (expected : int) : test =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int expected (tiles_left (get_wall game))
 
+let count_round_number (name : string) (game : state) (expected : int) : test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int expected (round_number game)
+
+let test_tile_suit (name : string) (t : tile) (expected : suit) : test =
+  name >:: fun _ -> assert_equal (tile_suit t) expected
+
+let test_tile_value (name : string) (t : tile) (expected : value) : test =
+  name >:: fun _ -> assert_equal (tile_value t) expected
+
+let test_tile_dora (name : string) (t : tile) (expected : int) : test =
+  name >:: fun _ -> assert_equal (tile_dora t) expected
+
+let test_incorrect_tiles (name : string) (t : tile) (expected : exn) : test =
+  name >:: fun _ -> assert_raises expected (fun () -> tile_value t)
+
 let method_tests =
   [
     test_draw_wind "basic" init_game East 14;
@@ -160,6 +177,18 @@ let method_tests =
     count_tiles_left "5- iterations tiles left test"
       (progress_game 50 init_game East)
       20;
+    count_round_number "count round number" init_game 4;
+    count_round_number "count rou nd number" (progress_game 3 init_game East) 4
+    (* Round number refers to how many roudns there are left in the game, not
+       how many rotations have elapsed. We want to make sure this dosent go down
+       in the middle of the game, artifically shortening the duration of a
+       game*);
+    test_tile_suit "test suit 1" (create_example_tile Pin (Integer 1) false) Pin;
+    test_tile_suit "test suit 2" (create_example_tile Man (Integer 2) false) Man;
+    test_tile_suit "test suit 3" (create_example_tile Sou (Integer 3) false) Sou;
+    test_tile_suit "test suit (wind 1)"
+      (create_example_tile Wind (Direction East) false)
+      Wind;
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]

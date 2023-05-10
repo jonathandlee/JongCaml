@@ -1,0 +1,27 @@
+Begin
+Testing for this project was significantly more difficult than expected, due to 2 
+reasons: 1: the game is non-deterministic, meaning testing has to account for randomness.
+More importantly though, a large amount of the game is dependent on the GUI, which is
+difficult to test. However, because bogue works so poorly on non-linux machines,
+we were forced to separate our game between command-line inputs and gui inputs.
+This actually gave us an easier branch to do testing on.
+
+In essence, we were able to automatically test: everything except for command-line user-prompted discards.
+Everything else, including discards 
+
+
+Test Plan Rubric [4 points]
+The test plan should be located in a comment at the top of the test file.
+
+-4: The test plan is missing.
+-1: The test plan does not explain which parts of the system were automatically tested by OUnit vs. manually tested.
+-1: The test plan does not explain what modules were tested by OUnit and how test cases were developed (black box, glass box, randomized, etc.).
+-1: The test plan does not provide an argument for why the testing approach demonstrates the correctness of the system.
+Test Suite Rubric [6 points]
+The test suite should be runnable with make test.
+
+-3: The OUnit suite does not have at least 50 passing tests.*
+-5: The OUnit suite does not run with make test, or dies in the middle of running.
+-6: There is no OUnit suite.
+
+

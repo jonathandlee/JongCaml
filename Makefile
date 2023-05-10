@@ -12,3 +12,12 @@ bisect: bisect-clean
 
 bisect-clean:
 	rm -rf _coverage bisect*.coverage
+
+loc:
+	 cloc --by-file --include-lang=OCaml .
+
+doc:
+	dune build @doc
+
+opendoc: doc
+	@bash opendoc.sh	
