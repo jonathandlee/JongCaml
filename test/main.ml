@@ -1,7 +1,11 @@
 open OUnit2
 open Mahjong
+open Game
 
-(** [pp_string s] pretty-prints string [s]. *)
+(* Create some basic inputs for testing*)
+let init_game = setup_game
+
+(* [pp_string s] pretty-prints string [s]. *)
 let pp_string s = "\"" ^ s ^ "\""
 
 (** [pp_list pp_elt lst] pretty-prints list [lst], using [pp_elt] to
@@ -23,9 +27,33 @@ let pp_list pp_elt lst =
    exposed in the [.mli] files. Do not expose your helper functions. See the
    handout for an explanation. *)
 
-(** let generate_all_tiles_test name = name >:: fun _ -> assert_equal
-    ~printer:pp_string (from_json file |> f) result *)
+(* let generate_all_tiles_test name = name >:: fun _ -> assert_equal
+   ~printer:pp_string (from_json file |> f) result *)
 
-let method_tests = []
+let test_draw_wind (name : string) (game : state) (wind : direction)
+    (expected : int) : test =
+  name >:: fun _ ->
+  let phand =
+    hand_of_player (get_player (draw_tile init_game East false) East)
+  in
+  assert_equal ~printer:string_of_int
+    (List.length
+       (string_list_of_tile (drawn_tile phand :: closed_hand_tiles phand)))
+    expected
+
+let test_draw_wind_raises (name : string) (game : state) (wind : direction)
+    (expected : string list) : test =
+  name >:: fun _ ->
+  assert_raises EmptyHand (fun () ->
+      drawn_tile
+        (hand_of_player (get_player (draw_tile init_game wind false) wind)))
+
+let method_tests =
+  [
+    test_draw_wind "basic" init_game East 14;
+    test_draw_wind_raises "" init_game East [];
+    test_draw_wind_raises "" init_game West [];
+  ]
+
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]
 let _ = run_test_tt_main suite
