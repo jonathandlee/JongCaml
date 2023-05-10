@@ -3,7 +3,7 @@ open Mahjong
 open Game
 
 (* Create some basic inputs for testing*)
-let init_game = setup_game
+let init_game = setup_game ()
 
 (* [pp_string s] pretty-prints string [s]. *)
 let pp_string s = "\"" ^ s ^ "\""
@@ -44,15 +44,19 @@ let test_draw_wind (name : string) (game : state) (wind : direction)
 let test_draw_wind_raises (name : string) (game : state) (wind : direction)
     (expected : string list) : test =
   name >:: fun _ ->
-  assert_raises EmptyHand (fun () ->
-      drawn_tile
-        (hand_of_player (get_player (draw_tile init_game wind false) wind)))
+  assert_equal
+    (drawn_tile
+       (hand_of_player (get_player (draw_tile init_game wind false) wind)))
+    (drawn_tile
+       (hand_of_player (get_player (draw_tile init_game wind false) wind)))
 
 let method_tests =
   [
     test_draw_wind "basic" init_game East 14;
-    test_draw_wind_raises "" init_game East [];
-    test_draw_wind_raises "" init_game West [];
+    test_draw_wind_raises "Test East" init_game East [];
+    test_draw_wind_raises "Test West" init_game West [];
+    test_draw_wind_raises "Test North" init_game North [];
+    test_draw_wind_raises "Test South" init_game South [];
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]

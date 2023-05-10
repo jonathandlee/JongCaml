@@ -324,6 +324,7 @@ let update_players (players : player * player * player * player)
   | a, b, c, d ->
       if a.wind = updated_player.wind then (updated_player, b, c, d)
       else if b.wind = updated_player.wind then (a, updated_player, c, d)
+      else if c.wind = updated_player.wind then (a, b, updated_player, d)
       else (a, b, c, updated_player)
 
 let rec string_of_hand (tiles : tile list) =
