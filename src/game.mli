@@ -80,9 +80,9 @@ exception InvalidSuit of string
 exception OutOfTiles
 (** Raised when there are no more tiles in the wall to draw*)
 
-val setup_game : state
-(** [setup_game t] deals four hands using tiles t and sets up the state of the
-    board for the game to begin. *)
+val setup_game : unit -> state
+(** [setup_game ()] deals four hands and sets up the state of the board for the
+    game to begin. *)
 
 val draw_tile : state -> direction -> bool -> state
 (** [draw_tile board wind from_dead] draws a tile from either the wall or dead

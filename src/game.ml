@@ -386,7 +386,7 @@ let string_list_of_tile list = List.map string_of_tile list
 let hand_of_player (p : player) = p.hand
 
 (* Main Functions: *)
-let setup_game =
+let setup_game () =
   let tiles =
     shuffle
       (quadruple generate_all_numbers Pin
