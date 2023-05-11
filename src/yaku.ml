@@ -45,4 +45,23 @@ let complete (h : hand) : block list option =
 (**
     ((pre @ [ nb ] @ t) :: subsets))
     
-    (fun x -> List.length x > 0)*)
+    (fun x -> List.length x > 0)**)
+
+(*All functions past this line will be towards calculating yaku*)
+
+
+
+let count_honors (b : block list) : int=
+  List.fold_left (fun count x -> count + count_block_honors x) 0 b
+
+let count_terminals (b : block list) : int =
+  List.fold_left (fun count x -> count + count_block_terminals x) 0 b
+
+let check_tanyao (b : block list) : bool =
+  if count_honors b = 0 && count_terminals b = 0 then true else false
+
+let check_triplet_dragons (b : block list) : int = 
+  List.fold_left (fun count x -> count + if dragon_triplet x then 1 else 0) 0 b
+
+let check_triplet_winds (b : block list) : int = 
+  List.fold_left (fun count x -> count + if wind_triplet x then 1 else 0) 0 b

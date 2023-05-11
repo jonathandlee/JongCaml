@@ -275,22 +275,60 @@ let combine (b : block) (t : tile) : block =
       if tile_suit a = tile_suit t then
         let (Integer x) = tile_value a in
         let (Integer y) = tile_value t in
-        if x - y = 1 || y - x = 2 then Sequence (a, b, t) else Invalid
+        if x - y = 1 then Sequence (t, a, b)
+        else if y - x = 2 then Sequence (a, b, t)
+        else Invalid
       else Invalid
   | Single a ->
       if compare_tile a t = 0 then Pair a
       else if tile_suit a = tile_suit t then
         match tile_suit a with
-        | Wind | Dragon ->
-            if compare_suit (tile_suit a) (tile_suit t) = 0 then Pair a
-            else Invalid
         | Pin | Man | Sou ->
             let (Integer x) = tile_value a in
             let (Integer y) = tile_value t in
-            if x - y = 1 || y - x = 1 then Ryanmen (a, t) else Invalid
+            if x - y = 1 then Ryanmen (t, a)
+            else if y - x = 1 then Ryanmen (a, t)
+            else Invalid
+        | _ -> Invalid
       else Invalid
   | Pair a -> if compare_tile a t = 0 then Triple a else Invalid
   | _ -> Invalid
+
+let count_block_honors (b : block) : int =
+  match b with
+  | Triple t1 -> if tile_suit t1 = Wind || tile_suit t1 = Dragon then 3 else 0
+  | Pair t1 -> if tile_suit t1 = Wind || tile_suit t1 = Dragon then 2 else 0
+  | Single t1 -> if tile_suit t1 = Wind || tile_suit t1 = Dragon then 1 else 0
+  | _ -> 0
+
+let count_block_terminals (b : block) : int =
+  match b with
+  | Triple t1 ->
+      if tile_value t1 = Integer 1 || tile_value t1 = Integer 9 then 3 else 0
+  | Pair t1 ->
+      if tile_value t1 = Integer 1 || tile_value t1 = Integer 9 then 2 else 0
+  | Single t1 ->
+      if tile_value t1 = Integer 1 || tile_value t1 = Integer 9 then 1 else 0
+  | Sequence (t1, t2, t3) ->
+      if tile_value t1 = Integer 1 || tile_value t3 = Integer 9 then 1 else 0
+  | Ryanmen (t1, t2) ->
+      if tile_value t1 = Integer 1 || tile_value t2 = Integer 9 then 1 else 0
+  | _ -> 0
+
+let dragon_triplet (b : block) : bool = 
+  match b with
+  | Triple t1 -> if tile_suit t1 = Dragon then true else false
+  | _ -> 0
+
+let wind_triplet (b : block) : bool = 
+  match b with
+  | Triple t1 -> if tile_suit t1 = Wind then true else false
+  | _ -> 0
+
+let prevalent_wind_triplet (b : block) (w : direction) : bool = 
+  match b with
+  | Triple t1 -> if tile_suit t1 = Wind && tile_value t1 = Direction w then true else false
+  | _ -> 0
 
 [@@@warning "+8"]
 
