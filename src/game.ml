@@ -315,20 +315,21 @@ let count_block_terminals (b : block) : int =
       if tile_value t1 = Integer 1 || tile_value t2 = Integer 9 then 1 else 0
   | _ -> 0
 
-let dragon_triplet (b : block) : bool = 
+let dragon_triplet (b : block) : bool =
   match b with
   | Triple t1 -> if tile_suit t1 = Dragon then true else false
-  | _ -> 0
+  | _ -> false
 
-let wind_triplet (b : block) : bool = 
+let wind_triplet (b : block) : bool =
   match b with
   | Triple t1 -> if tile_suit t1 = Wind then true else false
-  | _ -> 0
+  | _ -> false
 
-let prevalent_wind_triplet (b : block) (w : direction) : bool = 
+let prevalent_wind_triplet (b : block) (w : direction) : bool =
   match b with
-  | Triple t1 -> if tile_suit t1 = Wind && tile_value t1 = Direction w then true else false
-  | _ -> 0
+  | Triple t1 ->
+      if tile_suit t1 = Wind && tile_value t1 = Direction w then true else false
+  | _ -> false
 
 [@@@warning "+8"]
 

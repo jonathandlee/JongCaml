@@ -148,6 +148,23 @@ val string_list_of_tile : tile list -> string list
 val hand_of_player : player -> hand
 (** [hand_of_player p] gets the current hand of player p*)
 
+val dragon_triplet : block -> bool
+(** [dragon_triplet b] returns true if block is a dragon triplet, else false*)
+
+val wind_triplet : block -> bool
+(** [wind_triplet b] returns true if block is a wind triplet, else false*)
+
+val prevalent_wind_triplet : block -> direction -> bool
+(** [prevalent_wind_triplet b d] returns true if block is a triplet of the
+    current board wind, else fales*)
+
+val count_block_terminals : block -> int
+(** [count_block_terminals b] returns the amount of terminal tiles in the block
+    b*)
+
+val count_block_honors : block -> int
+(** [count_block_honors b] returns the amount of honor tiles in the block b*)
+
 val combine : block -> tile -> block
 val create_single : tile -> block
 val invalid_block : block
