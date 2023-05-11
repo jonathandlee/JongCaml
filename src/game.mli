@@ -166,5 +166,8 @@ val count_block_honors : block -> int
 (** [count_block_honors b] returns the amount of honor tiles in the block b*)
 
 val combine : block -> tile -> block
+(** [combine b t] attempts to combine block b with tile t to create new block
+    b'. Returns invalid if block is an invalid combination *)
+
 val create_single : tile -> block
 val invalid_block : block

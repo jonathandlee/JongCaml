@@ -9,6 +9,28 @@ let init_game = setup_game ()
 
 let create_example_tile (s : suit) (v : value) (b : bool) : tile = (s, v, b)
 
+(* Example blocks for testing, given that the game is non deterministic *)
+let wind_block =
+  combine
+    (combine
+       (create_single (create_example_tile Wind (Direction East) true))
+       (create_example_tile Wind (Direction East) true))
+    (create_example_tile Wind (Direction East) true)
+
+let manifest_block =
+  combine
+    (combine
+       (create_single (create_example_tile Wind (Direction East) true))
+       (create_example_tile Dragon (Color Red) true))
+    (create_example_tile Wind (Direction East) true)
+
+let dragon_block =
+  combine
+    (combine
+       (create_single (create_example_tile Dragon (Color Green) true))
+       (create_example_tile Dragon (Color Green) true))
+    (create_example_tile Dragon (Color Green) true)
+
 let rec progress_game (n : int) (game : state) (wind : direction) : state =
   let output_game =
     let post_draw_state = draw_tile game wind false in
@@ -135,10 +157,36 @@ let test_tile_value (name : string) (t : tile) (expected : value) : test =
   name >:: fun _ -> assert_equal (tile_value t) expected
 
 let test_tile_dora (name : string) (t : tile) (expected : int) : test =
-  name >:: fun _ -> assert_equal (tile_dora t) expected
+  name >:: fun _ -> assert_equal ~printer:string_of_int (tile_dora t) expected
 
 let test_incorrect_tiles (name : string) (t : tile) (expected : exn) : test =
   name >:: fun _ -> assert_raises expected (fun () -> tile_value t)
+
+let combine_test (name : string) (t1 : tile) (b1 : block) (b2 : block) : test =
+  name >:: fun _ -> assert_equal b1 b2
+
+let wind_block_test (name : string) (b : block) (expected : bool) : test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_bool (wind_triplet b) expected
+
+let dragon_block_test (name : string) (b : block) (expected : bool) : test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_bool (dragon_triplet b) expected
+
+let round_wind_block_test (name : string) (b : block) (wind : direction)
+    (expected : bool) : test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_bool (prevalent_wind_triplet b wind) expected
+
+let count_block_terminals_test (name : string) (b : block) (expected : int) :
+    test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int (count_block_terminals b) expected
+
+let count_block_honors_test (name : string) (b : block) (expected : int) : test
+    =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int (count_block_honors b) expected
 
 let method_tests =
   [
@@ -189,6 +237,18 @@ let method_tests =
     test_tile_suit "test suit (wind 1)"
       (create_example_tile Wind (Direction East) false)
       Wind;
+    wind_block_test "Test wind triplet" wind_block true;
+    wind_block_test "Test non-wind triplet" dragon_block false;
+    wind_block_test "Test partial wind block" manifest_block false;
+    dragon_block_test "Test wind triplet" wind_block false;
+    dragon_block_test "Test non-wind triplet" dragon_block true;
+    dragon_block_test "Test partial wind block" manifest_block false;
+    round_wind_block_test "Test wind triplet" wind_block East true;
+    round_wind_block_test "Test non-wind triplet" dragon_block East false;
+    round_wind_block_test "Test partial wind block" manifest_block East false;
+    round_wind_block_test "Test partial wind block" manifest_block West false;
+    count_block_honors_test "check honors in block" manifest_block 0;
+    count_block_honors_test "check honors in block" wind_block 3;
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]
