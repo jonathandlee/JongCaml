@@ -62,9 +62,8 @@ type block =
   | Single of tile
   | Pair of tile
   | Invalid
-(** Represents any given block of tiles. Can be a Triple, Sequence, Ryanmen,
-    Kanchan, Penchan, Single, or Pair. *)
-
+      (** Represents any given block of tiles. Can be a Triple, Sequence,
+          Ryanmen, Kanchan, Penchan, Single, or Pair. *)
 
 (** Hand of an individual player. Contains the most recently drawn tile and the
     other tiles in a user's hand, separated into tiles and melds. *)
@@ -80,9 +79,6 @@ type player
 type state
 (** The state of the Mahjong game. Contains information on the wall, dead wall,
     dora, hidden dora, players, round and wind *)
-
-
-
 
 exception EmptyHand
 (** Raised when a players hand is empty *)
@@ -181,6 +177,15 @@ val count_block_honors : block -> int
 val combine : block -> tile -> block
 (** [combine b t] attempts to combine block b with tile t to create new block
     b'. Returns invalid if block is an invalid combination *)
+
+val is_sequence : block -> bool
+(** [is_sequence] b checks to see if block b is a sequence *)
+
+val is_triple : block -> bool
+(** [is_sequence] b checks to see if block b is a sequence *)
+
+val is_pair : block -> bool
+(** [is_sequence] b checks to see if block b is a sequence *)
 
 val create_single : tile -> block
 val invalid_block : block

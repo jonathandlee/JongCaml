@@ -633,3 +633,18 @@ let discard_tile_gui inp_tile board wind =
     round = board.round;
     wind = board.wind;
   }
+
+let is_sequence (b : block) : bool =
+  match b with
+  | Sequence _ -> true
+  | _ -> false
+
+let is_triple (b : block) : bool =
+  match b with
+  | Triple _ -> true
+  | _ -> false
+
+let is_pair (b : block) : bool =
+  match b with
+  | Pair _ -> true
+  | _ -> false

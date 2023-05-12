@@ -63,21 +63,6 @@ let complete_closed (h : hand) : block list option =
 
 (* Helper functions for checking the types of blocks*)
 
-let is_sequence (b : block) : bool =
-  match b with
-  | Sequence _ -> true
-  | _ -> false
-
-let is_triple (b : block) : bool =
-  match b with
-  | Triple _ -> true
-  | _ -> false
-
-let is_pair (b : block) : bool =
-  match b with
-  | Pair _ -> true
-  | _ -> false
-
 (*Scuffed code reuse, TODO: add to game.mli, remove*)
 let triple_fst (x, y, z) = x
 let triple_snd (x, y, z) = y
@@ -92,7 +77,7 @@ let get_block_suit (b : block) : suit =
   | Penchan (t1, _)
   | Single t1
   | Pair t1 -> tile_suit t1
-  | Invalid -> raise Falure "invalid block"
+  | Invalid -> raise (Failure "invalid block")
 
 (* Requires: block does not contain honor tiles*)
 let compare_block_values (ba : block) (bb : block) : bool =
@@ -113,7 +98,7 @@ let compare_block_equal (ba : block) (bb : block) : bool =
       && tile_value t3a = tile_value t3b
       && tile_suit t1a = tile_suit t1b
   | Pair t1, Pair t2 ->
-      tile_value t1 = tile_value t2 && tile_suit t1 = tile_suite t2
+      tile_value t1 = tile_value t2 && tile_suit t1 = tile_suit t2
   | _ -> false
 
 (*All functions past this line will be towards calculating yaku*)
@@ -229,56 +214,44 @@ let rec check_chanta (b : block list) : bool =
   match b with
   | [] -> true
   | h :: t ->
-      if count_block_honors h > 0 || count_block_terminals h > 0 then chanta b
+      if count_block_honors h > 0 || count_block_terminals h > 0 then
+        check_chanta b
       else false
 
 (* Yeah im hardcoding this *)
+
+let pin_111 : block =
+  Sequence
+    ((Pin, Integer 1, false), (Pin, Integer 1, false), (Pin, Integer 1, false))
+
 let pin_19 : block list =
   [
-    ( Sequence
-        ( (Pin, Integer 1, false),
-          (Pin, Integer 2, false),
-          (Pin, Integer 3, false) ),
-      Sequence
-        ( (Pin, Integer 4, false),
-          (Pin, Integer 5, false),
-          (Pin, Integer 6, false) ),
-      Sequence
-        ( (Pin, Integer 7, false),
-          (Pin, Integer 8, false),
-          (Pin, Integer 9, false) ) );
+    Sequence
+      ((Pin, Integer 1, false), (Pin, Integer 2, false), (Pin, Integer 3, false));
+    Sequence
+      ((Pin, Integer 4, false), (Pin, Integer 5, false), (Pin, Integer 6, false));
+    Sequence
+      ((Pin, Integer 7, false), (Pin, Integer 8, false), (Pin, Integer 9, false));
   ]
 
 let man_19 : block list =
   [
-    ( Sequence
-        ( (Man, Integer 1, false),
-          (Man, Integer 2, false),
-          (Man, Integer 3, false) ),
-      Sequence
-        ( (Man, Integer 4, false),
-          (Man, Integer 5, false),
-          (Man, Integer 6, false) ),
-      Sequence
-        ( (Man, Integer 7, false),
-          (Man, Integer 8, false),
-          (Man, Integer 9, false) ) );
+    Sequence
+      ((Man, Integer 1, false), (Man, Integer 2, false), (Man, Integer 3, false));
+    Sequence
+      ((Man, Integer 4, false), (Man, Integer 5, false), (Man, Integer 6, false));
+    Sequence
+      ((Man, Integer 7, false), (Man, Integer 8, false), (Man, Integer 9, false));
   ]
 
 let sou_19 : block list =
   [
-    ( Sequence
-        ( (Sou, Integer 1, false),
-          (Sou, Integer 2, false),
-          (Sou, Integer 3, false) ),
-      Sequence
-        ( (Sou, Integer 4, false),
-          (Sou, Integer 5, false),
-          (Sou, Integer 6, false) ),
-      Sequence
-        ( (Sou, Integer 7, false),
-          (Sou, Integer 8, false),
-          (Sou, Integer 9, false) ) );
+    Sequence
+      ((Sou, Integer 1, false), (Sou, Integer 2, false), (Sou, Integer 3, false));
+    Sequence
+      ((Sou, Integer 4, false), (Sou, Integer 5, false), (Sou, Integer 6, false));
+    Sequence
+      ((Sou, Integer 7, false), (Sou, Integer 8, false), (Sou, Integer 9, false));
   ]
 
 (* checks if block list contains block b*)
