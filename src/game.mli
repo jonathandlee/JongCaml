@@ -52,6 +52,20 @@ type hand = {
   tiles : tile list;
   melds : meld list;
 }
+
+type block =
+  | Triple of tile
+  | Sequence of tile * tile * tile
+  | Ryanmen of tile * tile
+  | Kanchan of tile * tile
+  | Penchan of tile * tile
+  | Single of tile
+  | Pair of tile
+  | Invalid
+(** Represents any given block of tiles. Can be a Triple, Sequence, Ryanmen,
+    Kanchan, Penchan, Single, or Pair. *)
+
+
 (** Hand of an individual player. Contains the most recently drawn tile and the
     other tiles in a user's hand, separated into tiles and melds. *)
 
@@ -67,9 +81,8 @@ type state
 (** The state of the Mahjong game. Contains information on the wall, dead wall,
     dora, hidden dora, players, round and wind *)
 
-type block
-(** Represents any given block of tiles. Can be a Triple, Sequence, Ryanmen,
-    Kanchan, Penchan, Single, or Pair. *)
+
+
 
 exception EmptyHand
 (** Raised when a players hand is empty *)
