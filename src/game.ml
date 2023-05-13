@@ -648,3 +648,76 @@ let is_pair (b : block) : bool =
   match b with
   | Pair _ -> true
   | _ -> false
+
+[@@@warning "-8"]
+
+(*Same combine function but supports kanchans*)
+let combine_with_kanchan (b : block) (t : tile) : block =
+  match b with
+  | Triple _ -> Invalid
+  | Sequence (a, b, c) -> Invalid
+  | Ryanmen (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if x - y = 1 then Sequence (t, a, b)
+        else if y - x = 2 then Sequence (a, b, t)
+        else Invalid
+      else Invalid
+  | Kanchan (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if y - x = 1 then Sequence (a, t, b) else Invalid
+      else Invalid
+  | Single a ->
+      if compare_tile a t = 0 then Pair a
+      else if tile_suit a = tile_suit t then
+        match tile_suit a with
+        | Pin | Man | Sou ->
+            let (Integer x) = tile_value a in
+            let (Integer y) = tile_value t in
+            if x - y = 1 then Ryanmen (t, a)
+            else if y - x = 1 then Ryanmen (a, t)
+            else if x + 2 = y then Kanchan (a, t)
+            else if y + 2 = x then Kanchan (t, a)
+            else Invalid
+        | _ -> Invalid
+      else Invalid
+  | Pair a -> if compare_tile a t = 0 then Triple a else Invalid
+  | _ -> Invalid
+
+[@@@warning "+8"]
+
+(*Combines tile t with all blocks in b and returns a list of any newly combined
+  blocks*)
+let rec combine_block_list (t : tile) (b : block list) (nbl : block list) :
+    block list =
+  match b with
+  | [] -> nbl
+  | h :: tl ->
+      let nb = combine_with_kanchan h t in
+      if nb = invalid_block then combine_block_list t tl nbl
+      else combine_block_list t tl (nb :: nbl)
+
+(*Generates a set of all blocks present in a tile list*)
+let rec generate_blocks (h : tile list) (ans : block list) : block list =
+  match h with
+  | [] -> ans
+  | hb :: t ->
+      let c = combine_block_list hb ans [] in
+      generate_blocks h (create_single hb :: (c @ ans))
+
+let rec generate_melds_helper (t : tile) (bl : block list)
+    (meld_list : block list) : block list =
+  match bl with
+  | [] -> meld_list
+  | h :: tl -> (
+      let meld = combine_with_kanchan h t in
+      match meld with
+      | Sequence _ | Triple _ -> generate_melds_helper t tl (meld :: meld_list)
+      | _ -> generate_melds_helper t tl meld_list)
+
+let generate_melds (t : tile) (h : tile list) : block list =
+  let bl = generate_blocks h [] in
+  generate_melds_helper t bl []

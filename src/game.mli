@@ -189,3 +189,4 @@ val is_pair : block -> bool
 
 val create_single : tile -> block
 val invalid_block : block
+val generate_melds : tile -> tile list -> block list
