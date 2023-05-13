@@ -35,7 +35,7 @@ val check_tsumo : hand -> bool
 (** [check_tsumo hand] checks if the hand has no melds. Requires: "hand" is a
     winning hand (see [complete hand])*)
 
-val check_iipeikou : hand -> int
+val check_iipeikou : block list -> int
 (** [check_iipeikou hand] checks how many pure double sequences are in the hand.
     (Usually return 1 or 0, if the result is 2, the alternative "ryanpeikou"
     yaku will be calculated instead) *)

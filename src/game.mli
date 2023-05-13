@@ -190,3 +190,7 @@ val is_pair : block -> bool
 val create_single : tile -> block
 val invalid_block : block
 val generate_melds : tile -> tile list -> block list
+
+val melding : state -> direction -> state
+(** [melding s d] checks the most recent discard of player of game state s and
+    wind d to see if any other player can meld that tile. *)
