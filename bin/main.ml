@@ -1,5 +1,6 @@
 open Mahjong
 open Game
+open Bogue
 
 let init_state = Mahjong.Game.setup_game ()
 let wind = Mahjong.Game.round_wind init_state
@@ -8,7 +9,7 @@ let hand = Mahjong.Game.hand_of_player p
 
 let next_player (p : direction) =
   match p with
-  | East -> West
+  | East -> North
   | North -> West
   | West -> South
   | South -> East
@@ -20,9 +21,11 @@ let curr_state = ref init_state
 
 let rec build_board (game : state) wind =
   let game = draw_tile game wind false in
-  build_board (Gui.create_board_2 game false wind) (next_player wind)
+  let g1, g2 = Gui.create_board_2 game false wind in
 
-let () = curr_state := build_board init_state wind
+  if g2 = false then failwith "game over" else build_board g1 (next_player wind)
+
+let () = build_board init_state wind
 
 (* let rec simgame (game : state) wind = Mahjong.Gui.render game true East; let
    b = discard_tile (draw_tile game wind false) wind in simgame b wind
