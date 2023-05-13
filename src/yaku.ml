@@ -3,6 +3,43 @@ open Game
 type prep_hand = block list
 type counter = (block * int) list
 
+
+(*Same combine function but supports kanchans*)
+let combine_with_kanchan (b : block) (t : tile) : block =
+  match b with
+  | Triple _ -> Invalid
+  | Sequence (a, b, c) -> Invalid
+  | Ryanmen (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if x - y = 1 then Sequence (t, a, b)
+        else if y - x = 2 then Sequence (a, b, t)
+        else Invalid
+      else Invalid
+  | Kanchan (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if y - x = 1 then Sequence (a, t, b) else Invalid
+      else Invalid
+  | Single a ->
+      if compare_tile a t = 0 then Pair a
+      else if tile_suit a = tile_suit t then
+        match tile_suit a with
+        | Pin | Man | Sou ->
+            let (Integer x) = tile_value a in
+            let (Integer y) = tile_value t in
+            if x - y = 1 then Ryanmen (t, a)
+            else if y - x = 1 then Ryanmen (a, t)
+            else if x + 2 = y then Kanchan (a, t)
+            else if y + 2 = x then Kanchan (t, a)
+            else Invalid
+        | _ -> Invalid
+      else Invalid
+  | Pair a -> if compare_tile a t = 0 then Triple a else Invalid
+  | _ -> Invalid
+
 let rec generate_subsets_helper (h : tile) (b : block list) (pre : block list)
     (subsets : block list list) : block list list =
   match b with
