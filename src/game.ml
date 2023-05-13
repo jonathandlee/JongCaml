@@ -377,7 +377,6 @@ let print_hand hand = print_endline ("Your hand is: " ^ hand)
 
 let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
     =
-  let new_list = if new_list = [] then [] else new_list in
   match list with
   | [] -> raise EmptyHand
   | hd :: tl ->
@@ -393,13 +392,16 @@ let discard_tile_helper hand drawn_tile =
   let hand = sort_tiles (drawn_tile @ hand) in
   let curr_hand = string_of_hand hand in
   let _ = print_hand curr_hand in
-  let _ =
-    print_endline ("Your Draw: " ^ string_of_tile (List.nth drawn_tile 0))
+  let drawn_string =
+    match drawn_tile with
+    | [] -> ""
+    | _ -> string_of_tile (List.nth drawn_tile 0)
   in
+  let _ = print_endline ("Your Draw: " ^ drawn_string) in
   let _ = print_endline "Please choose a tile to discard." in
   let user_input = read_line () in
   let user_tile = tile_of_string user_input in
-  sort_tiles (remove_from_list hand [] user_tile)
+  (sort_tiles (remove_from_list hand [] user_tile), user_tile)
 
 let tiles_of_melds_helper meld =
   match meld with
@@ -537,10 +539,11 @@ let draw_tile board wind from_dead =
 let discard_tile board wind =
   let player_to_discard = determine_player board.players wind in
   let player_hand = player_to_discard.hand in
+  let discard_result = discard_tile_helper player_hand.tiles player_hand.draw in
   let new_hand =
     {
       draw = None;
-      tiles = discard_tile_helper player_hand.tiles player_hand.draw;
+      tiles = fst discard_result;
       melds = player_to_discard.hand.melds;
     }
   in
@@ -550,7 +553,7 @@ let discard_tile board wind =
       points = player_to_discard.points;
       riichi = player_to_discard.riichi;
       wind = player_to_discard.wind;
-      discards = player_to_discard.discards;
+      discards = snd discard_result :: player_to_discard.discards;
     }
   in
   {
@@ -582,13 +585,6 @@ let drawn_tile hand =
   | Some x -> x
   | None -> raise EmptyHand
 
-(* TEST *)
-(* let test = discard_tile (draw_tile (discard_tile (draw_tile (discard_tile
-   (draw_tile (discard_tile (draw_tile (discard_tile (draw_tile (discard_tile
-   (draw_tile (discard_tile (draw_tile (discard_tile (draw_tile setup_game East
-   false) East) East false) East) East false) East) East false) East) East
-   false) East) East false) East) East false) East) East false) East *)
-
 let discard_tile_helper_2 (inp : string) hand drawn_tile =
   let drawn_tile =
     match drawn_tile with
@@ -598,20 +594,26 @@ let discard_tile_helper_2 (inp : string) hand drawn_tile =
   let hand = sort_tiles (drawn_tile @ hand) in
   let curr_hand = string_of_hand hand in
   let _ = print_hand curr_hand in
-  let _ =
-    print_endline ("Your Draw: " ^ string_of_tile (List.nth drawn_tile 0))
+  let drawn_string =
+    match drawn_tile with
+    | [] -> ""
+    | _ -> string_of_tile (List.nth drawn_tile 0)
   in
+  let _ = print_endline ("Your Draw: " ^ drawn_string) in
   let _ = print_endline "Please choose a tile to discard." in
   let user_tile = tile_of_string inp in
-  sort_tiles (remove_from_list hand [] user_tile)
+  (sort_tiles (remove_from_list hand [] user_tile), user_tile)
 
 let discard_tile_gui inp_tile board wind =
   let player_to_discard = determine_player board.players wind in
   let player_hand = player_to_discard.hand in
+  let discard_result =
+    discard_tile_helper_2 inp_tile player_hand.tiles player_hand.draw
+  in
   let new_hand =
     {
       draw = None;
-      tiles = discard_tile_helper_2 inp_tile player_hand.tiles player_hand.draw;
+      tiles = fst discard_result;
       melds = player_to_discard.hand.melds;
     }
   in
@@ -621,7 +623,7 @@ let discard_tile_gui inp_tile board wind =
       points = player_to_discard.points;
       riichi = player_to_discard.riichi;
       wind = player_to_discard.wind;
-      discards = player_to_discard.discards;
+      discards = snd discard_result :: player_to_discard.discards;
     }
   in
   {
@@ -648,3 +650,334 @@ let is_pair (b : block) : bool =
   match b with
   | Pair _ -> true
   | _ -> false
+
+[@@@warning "-8"]
+
+(*Same combine function but supports kanchans*)
+let combine_with_kanchan (b : block) (t : tile) : block =
+  match b with
+  | Triple _ -> Invalid
+  | Sequence (a, b, c) -> Invalid
+  | Ryanmen (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if x - y = 1 then Sequence (t, a, b)
+        else if y - x = 2 then Sequence (a, b, t)
+        else Invalid
+      else Invalid
+  | Kanchan (a, b) ->
+      if tile_suit a = tile_suit t then
+        let (Integer x) = tile_value a in
+        let (Integer y) = tile_value t in
+        if y - x = 1 then Sequence (a, t, b) else Invalid
+      else Invalid
+  | Single a ->
+      if compare_tile a t = 0 then Pair a
+      else if tile_suit a = tile_suit t then
+        match tile_suit a with
+        | Pin | Man | Sou ->
+            let (Integer x) = tile_value a in
+            let (Integer y) = tile_value t in
+            if x - y = 1 then Ryanmen (t, a)
+            else if y - x = 1 then Ryanmen (a, t)
+            else if x + 2 = y then Kanchan (a, t)
+            else if y + 2 = x then Kanchan (t, a)
+            else Invalid
+        | _ -> Invalid
+      else Invalid
+  | Pair a -> if compare_tile a t = 0 then Triple a else Invalid
+  | _ -> Invalid
+
+[@@@warning "+8"]
+
+(*Combines tile t with all blocks in b and returns a list of any newly combined
+  blocks*)
+let rec combine_block_list (t : tile) (b : block list) (nbl : block list) :
+    block list =
+  match b with
+  | [] -> nbl
+  | h :: tl ->
+      let nb = combine_with_kanchan h t in
+      if nb = invalid_block then combine_block_list t tl nbl
+      else combine_block_list t tl (nb :: nbl)
+
+(*Generates a set of all blocks present in a tile list*)
+let rec generate_blocks (h : tile list) (ans : block list) : block list =
+  match h with
+  | [] -> ans
+  | hb :: t ->
+      let c = combine_block_list hb ans [] in
+      generate_blocks t (create_single hb :: (c @ ans))
+
+let rec generate_melds_helper (t : tile) (bl : block list)
+    (meld_list : block list) : block list =
+  match bl with
+  | [] -> meld_list
+  | h :: tl -> (
+      let meld = combine_with_kanchan h t in
+      match meld with
+      | Sequence _ | Triple _ -> generate_melds_helper t tl (meld :: meld_list)
+      | _ -> generate_melds_helper t tl meld_list)
+
+let generate_melds (t : tile) (h : tile list) : block list =
+  let bl = generate_blocks h [] in
+  generate_melds_helper t bl []
+
+let rec check_chii melds =
+  match melds with
+  | [] -> false
+  | hd :: tl -> (
+      match hd with
+      | Sequence _ -> true
+      | _ -> check_chii tl)
+
+let rec check_pon melds =
+  match melds with
+  | [] -> false
+  | hd :: tl -> (
+      match hd with
+      | Triple _ -> true
+      | _ -> check_pon tl)
+
+let rec small_remove_from_list lst itm acc =
+  match lst with
+  | [] -> acc
+  | hd :: tl ->
+      if hd = itm then tl @ acc else small_remove_from_list tl itm (hd :: acc)
+
+let rec remove_list_from_list hnd mld acc =
+  match hnd with
+  | [] -> acc
+  | hd :: tl ->
+      if List.mem hd mld then
+        let new_mld = small_remove_from_list mld hd [] in
+        remove_list_from_list tl new_mld acc
+      else remove_list_from_list tl mld (hd :: acc)
+
+[@@@warning "-8"]
+
+let meld_of_block b =
+  match b with
+  | Sequence (x, y, z) -> Chi (x, y, z)
+  | Triple x -> Pon (x, x, x)
+
+[@@@warning "+8"]
+
+let rec meld_chii melds (hand : hand) =
+  let possible_meld, rest =
+    match melds with
+    | [] -> (Invalid, [])
+    | hd :: tl -> (hd, tl)
+  in
+  if possible_meld = Invalid then hand
+  else
+    let item =
+      match possible_meld with
+      | Sequence (x, y, z) -> [ x; y; z ]
+      | _ -> []
+    in
+    if List.length item = 0 then meld_chii rest hand
+    else
+      let _ =
+        print_endline ("Make the sequence, " ^ string_of_list item ^ "? [y/n]")
+      in
+      let user_input = read_line () in
+      if user_input = "y" then
+        let new_hand = remove_list_from_list (closed_hand_tiles hand) item [] in
+        {
+          draw = None;
+          tiles = new_hand;
+          melds = meld_of_block possible_meld :: hand.melds;
+        }
+      else meld_chii rest hand
+
+let rec meld_pon melds (hand : hand) =
+  let possible_meld, rest =
+    match melds with
+    | [] -> (Invalid, [])
+    | hd :: tl -> (hd, tl)
+  in
+  if possible_meld = Invalid then hand
+  else
+    let item =
+      match possible_meld with
+      | Triple x -> [ x; x; x ]
+      | _ -> []
+    in
+    if List.length item = 0 then meld_pon rest hand
+    else
+      let _ =
+        print_endline ("Make the triple, " ^ string_of_list item ^ "? [y/n]")
+      in
+      let user_input = read_line () in
+      if user_input = "y" then
+        let new_hand = remove_list_from_list (closed_hand_tiles hand) item [] in
+        {
+          draw = None;
+          tiles = new_hand;
+          melds = meld_of_block possible_meld :: hand.melds;
+        }
+      else meld_pon rest hand
+
+let run_chii melds hand discarded_tile wind =
+  let _ =
+    print_endline
+      ("Would you like to chii on tile: "
+      ^ string_of_tile discarded_tile
+      ^ "? [y/n]")
+  in
+  let user_input = read_line () in
+  if user_input = "y" then (true, wind, meld_chii melds hand)
+  else (false, wind, hand)
+
+let run_pon melds hand discarded_tile wind =
+  let _ =
+    print_endline
+      ("Would you like to pon on tile: "
+      ^ string_of_tile discarded_tile
+      ^ "? [y/n]")
+  in
+  let user_input = read_line () in
+  if user_input = "y" then (true, wind, meld_pon melds hand)
+  else (false, wind, hand)
+
+let run_one_pon player3 wind3 melds3 discarded_tile =
+  match check_pon melds3 with
+  | true -> (
+      let pon_result = run_pon melds3 player3 discarded_tile wind3 in
+      match triple_fst pon_result with
+      | true -> pon_result
+      | false -> (false, wind3, player3))
+  | false -> (false, wind3, player3)
+
+let run_two_pon (player2, player3) (wind2, wind3) (melds2, melds3)
+    discarded_tile =
+  match check_pon melds2 with
+  | true -> (
+      let pon_result = run_pon melds2 player2 discarded_tile wind2 in
+      match triple_fst pon_result with
+      | true -> pon_result
+      | false -> run_one_pon player3 wind3 melds3 discarded_tile)
+  | false -> run_one_pon player3 wind3 melds3 discarded_tile
+
+let run_three_pon (player1, player2, player3) (wind1, wind2, wind3)
+    (melds1, melds2, melds3) discarded_tile =
+  match check_pon melds1 with
+  | true -> (
+      let pon_result = run_pon melds1 player1 discarded_tile wind1 in
+      match triple_fst pon_result with
+      | true -> pon_result
+      | false ->
+          run_two_pon (player2, player3) (wind2, wind3) (melds2, melds3)
+            discarded_tile)
+  | false ->
+      run_two_pon (player2, player3) (wind2, wind3) (melds2, melds3)
+        discarded_tile
+
+let run_chii_or_pon (player1, player2, player3) (wind1, wind2, wind3)
+    (melds1, melds2, melds3) discarded_tile =
+  match check_chii melds1 with
+  | true -> (
+      let chii_result = run_chii melds1 player1 discarded_tile wind1 in
+      match triple_fst chii_result with
+      | true -> chii_result
+      | false ->
+          run_three_pon
+            (player1, player2, player3)
+            (wind1, wind2, wind3) (melds1, melds2, melds3) discarded_tile)
+  | false ->
+      run_three_pon
+        (player1, player2, player3)
+        (wind1, wind2, wind3) (melds1, melds2, melds3) discarded_tile
+
+let melding_helper board discarded_tile wind =
+  let winds =
+    match wind with
+    | East -> (South, West, North)
+    | South -> (West, North, East)
+    | North -> (East, South, West)
+    | West -> (North, East, South)
+  in
+  let first_player = (get_player board (triple_fst winds)).hand in
+  let first_player_melds =
+    generate_melds discarded_tile (closed_hand_tiles first_player)
+  in
+  let second_player = (get_player board (triple_snd winds)).hand in
+  let second_player_melds =
+    generate_melds discarded_tile (closed_hand_tiles second_player)
+  in
+  let third_player = (get_player board (triple_third winds)).hand in
+  let third_player_melds =
+    generate_melds discarded_tile (closed_hand_tiles third_player)
+  in
+  let meld_result =
+    run_chii_or_pon
+      (first_player, second_player, third_player)
+      winds
+      (first_player_melds, second_player_melds, third_player_melds)
+      discarded_tile
+  in
+  if triple_fst meld_result = false then
+    {
+      wall = board.wall;
+      dead_wall = board.dead_wall;
+      dora = board.dora;
+      hidden_dora = board.hidden_dora;
+      players = board.players;
+      round = board.round;
+      wind = board.wind;
+    }
+  else
+    let meld_wind, new_hand =
+      match meld_result with
+      | _, y, z -> (y, z)
+    in
+    let old_player = get_player board meld_wind in
+    let new_player =
+      {
+        hand = new_hand;
+        points = old_player.points;
+        riichi = old_player.riichi;
+        wind = old_player.wind;
+        discards = old_player.discards;
+      }
+    in
+    let old_original_player = get_player board wind in
+    let updated_discards =
+      match old_original_player.discards with
+      | [] -> []
+      | hd :: tl -> tl
+    in
+    let updated_player =
+      {
+        hand = old_original_player.hand;
+        points = old_original_player.points;
+        riichi = old_original_player.riichi;
+        wind = old_original_player.wind;
+        discards = updated_discards;
+      }
+    in
+    let temp_board_state =
+      {
+        wall = board.wall;
+        dead_wall = board.dead_wall;
+        dora = board.dora;
+        hidden_dora = board.hidden_dora;
+        players =
+          update_players
+            (update_players board.players updated_player)
+            new_player;
+        round = board.round;
+        wind = board.wind;
+      }
+    in
+    discard_tile temp_board_state meld_wind
+
+(* FOR GUI SUPPORT, THIS IS THE FUNCTION THAT IS CALLED, SO I THINK THIS IS THE
+   ONE THAT NEEDS THE STRING INPUT, THEN PASS IT INTO THE HELPER FUNCTION, WHICH
+   CAN THEN USE IN FOR THE GUI SUPPORTED DISCARDING *)
+let melding board wind =
+  let curr_player = get_player board wind in
+  let discarded_tile = List.nth curr_player.discards 0 in
+  melding_helper board discarded_tile wind
