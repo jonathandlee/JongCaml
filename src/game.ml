@@ -594,9 +594,12 @@ let discard_tile_helper_2 (inp : string) hand drawn_tile =
   let hand = sort_tiles (drawn_tile @ hand) in
   let curr_hand = string_of_hand hand in
   let _ = print_hand curr_hand in
-  let _ =
-    print_endline ("Your Draw: " ^ string_of_tile (List.nth drawn_tile 0))
+  let drawn_string =
+    match drawn_tile with
+    | [] -> ""
+    | _ -> string_of_tile (List.nth drawn_tile 0)
   in
+  let _ = print_endline ("Your Draw: " ^ drawn_string) in
   let _ = print_endline "Please choose a tile to discard." in
   let user_tile = tile_of_string inp in
   (sort_tiles (remove_from_list hand [] user_tile), user_tile)
@@ -971,6 +974,9 @@ let melding_helper board discarded_tile wind =
     in
     discard_tile temp_board_state meld_wind
 
+(* FOR GUI SUPPORT, THIS IS THE FUNCTION THAT IS CALLED, SO I THINK THIS IS THE
+   ONE THAT NEEDS THE STRING INPUT, THEN PASS IT INTO THE HELPER FUNCTION, WHICH
+   CAN THEN USE IN FOR THE GUI SUPPORTED DISCARDING *)
 let melding board wind =
   let curr_player = get_player board wind in
   let discarded_tile = List.nth curr_player.discards 0 in
