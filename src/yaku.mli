@@ -31,9 +31,9 @@ val check_tanyao : block list -> bool
 val check_triplet_dragons : block list -> int
 (** [check_triplet_dragons] returns number of triplet dragons in hand*)
 
-val check_tsumo : hand -> bool
+val check_tsumo : hand -> bool -> bool
 (** [check_tsumo hand] checks if the hand has no melds. Requires: "hand" is a
-    winning hand (see [complete hand])*)
+    winning hand (see [complete hand]), last tile was DRAWN*)
 
 val check_iipeikou : block list -> int
 (** [check_iipeikou hand] checks how many pure double sequences are in the hand.

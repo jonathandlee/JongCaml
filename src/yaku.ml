@@ -118,7 +118,8 @@ let check_triplet_dragons (b : block list) : int =
 let check_triplet_winds (b : block list) : int =
   List.fold_left (fun count x -> count + if wind_triplet x then 1 else 0) 0 b
 
-let check_tsumo (h : hand) : bool = if h.melds = [] then true else false
+let check_tsumo (h : hand) (drawn : bool) : bool =
+  if h.melds = [] && drawn then true else false
 
 (*Assoc list of blocks to number of times they appear in the hand*)
 let rec assoc_populate (b : block list) (b_assoc : counter) : counter =
@@ -286,3 +287,29 @@ let rec check_sanshiki_helper (b : block list) (original_b : block list) : bool
       else check_sanshiki_helper t original_b
 
 let check_sanshiki (b : block list) : bool = check_sanshiki_helper b b
+
+let get_yaku (h : hand) (drawn : bool) : (string * int) list =
+  let blocklist =
+    let block_opt = complete h in
+    match block_opt with
+    | Some b -> b
+    | None -> raise (Failure "complete hand")
+  in
+  let ans = ref [] in
+  begin
+    if check_tanyao blocklist then ans := ("All Simples", 1) :: !ans else ();
+    let dragons = check_triplet_dragons blocklist in
+    if dragons > 0 then ans := ("Dragons", dragons) :: !ans else ();
+    if check_tsumo h drawn then ans := ("Tsumo", 1) :: !ans else ();
+    let iipeikou = check_iipeikou blocklist in
+    if iipeikou > 0 then ans := ("Iipeikou", iipeikou) :: !ans else ();
+    if check_triple_triplets blocklist then ans := ("Triple Triplets", 2) :: !ans else ();
+    if check_all_concealed_triplets h then ans := ("Three Concealed Triplets", 2) :: !ans else ();
+    if check_all_triplets blocklist then ans := ("All Triplets", 2) :: !ans else ();
+    if check_shousangen blocklist then ans := ("Little Three Dragons", 2) :: !ans else ();
+    if check_chiitoitsu blocklist then ans := ("Seven Pairs", 2) :: !ans else ();
+    if check_chanta blocklist then ans := ("Chanta", 2) :: !ans else ();
+    if check_ittsu blocklist then ans := ("Pure Straight", 2) :: !ans else ();
+    if check_sanshiki blocklist then ans := ("Mixed Triple Sequence", 2) :: !ans else ();
+  end;
+  !ans
