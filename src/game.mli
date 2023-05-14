@@ -115,6 +115,10 @@ val round_wind : state -> direction
 val round_number : state -> int
 (** [round_number s] gives the number of round of the game. *)
 
+val string_of_wind : direction -> string
+(** [string_of_wind d] gives the string representation of a wind value (e.g.,
+    wind East evaluates to "East", etc)*)
+
 val get_player : state -> direction -> player
 (** [get_player s d] gives the player with wind d from game s. *)
 

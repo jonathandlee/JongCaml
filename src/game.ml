@@ -493,6 +493,13 @@ let setup_game () =
     wind = East;
   }
 
+let string_of_wind (d : direction) : string =
+  match d with
+  | East -> "East"
+  | West -> "West"
+  | North -> "North"
+  | South -> "South"
+
 (* does not properly work with dead wall *)
 let draw_tile board wind from_dead =
   let player_to_draw = determine_player board.players wind in
@@ -501,7 +508,9 @@ let draw_tile board wind from_dead =
       if from_dead then board.dead_wall else board.wall.tiles
     in
     match wall_to_draw with
-    | [] -> raise OutOfTiles
+    | [] ->
+        print_endline "You ran out of tiles! Nobody wins";
+        raise OutOfTiles
     | hd :: tl ->
         let new_hand =
           {

@@ -2,6 +2,7 @@ open Bogue
 open Main
 open Tsdl
 open Game
+open Yaku
 module W = Widget
 module L = Layout
 module T = Trigger
@@ -35,10 +36,6 @@ let create_button (x : int) =
 
 let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
 let get_wind game = round_wind game
-let p1 game = get_player game Game.East
-let p2 game = get_player game Game.South
-let p3 game = get_player game Game.West
-let p4 game = get_player game Game.North
 
 let generate_tile_gui (tiles : string list) =
   L.flat_of_w (hand_to_widgets tiles)
@@ -66,17 +63,20 @@ let next_wind (wind : direction) =
   | West -> South
   | South -> East
 
+let complete_helper (b : block list option) : bool =
+  match b with
+  | Some z -> true
+  | None -> false
+
 let create_board_2 (game : state) (first_round : bool)
     (current_player : direction) =
   let endgame_bool = ref true in
   let game = draw_tile game current_player false in
-  (* let p1_hand = player_hand (p1 game) in *)
-  (* let p3_hand = player_hand (p3 game) in *)
   let new_p = player_hand (get_player game (next_wind current_player)) in
-  let new_p2 = player_hand (get_player game (next_wind current_player)) in
-  let new_p3 = player_hand (get_player game (next_wind current_player)) in
   let p = get_player game current_player in
   let hand = hand_of_player p in
+  if complete_helper (complete hand) then Bogue.quit ();
+
   let tl = closed_hand_tiles (hand_of_player p) in
   let tl = try drawn_tile hand :: tl with EmptyHand -> failwith "fuck" in
   let string_tiles = string_list_of_tile tl in
@@ -85,21 +85,12 @@ let create_board_2 (game : state) (first_round : bool)
   let newnewstate = ref game in
   let image = set_background image_file in
   let box = W.box ~w:720 ~h:600 ~style () in
-  (* let n = Array.init 13 (fun _ -> W.check_box ()) in *)
   let ns = generate_tile_gui (string_list_of_tile new_p) in
-  (* let ns = L.flat_of_w (Array.to_list n) in *)
-  (* let s = Array.init 13 (fun _ -> W.button ~kind:Button.Switch
-     ~label_on:(Label.icon bamboo) ~label_off:(Label.icon bamboo) "竹" ) in *)
-  (* let s = Array.init 13 (fun _ -> W.image bamboo) in let ss = L.flat_of_w
-     (Array.to_list s) in *)
   let ss = generate_tile_gui string_tiles in
-  let e = generate_vertical_tile_gui (string_list_of_tile new_p2) in
-  let w = generate_vertical_tile_gui (string_list_of_tile new_p3) in
   let layout =
-    L.tower [ L.flat [ e; L.tower [ ns; L.tower_of_w [ box ] ]; w ]; ss ]
+    L.tower [ L.flat [ L.tower [ ns; L.tower_of_w [ box ] ] ]; ss ]
   in
   let layout = L.superpose [ image; layout ] in
-  (* Create Menu*)
   let create_menu_buttonn x =
     let open Menu in
     {
@@ -141,11 +132,8 @@ let create_board_2 (game : state) (first_round : bool)
   L.setx ns 165;
   L.setx ss 190;
   L.sety ss 700;
-  L.sety e 240;
-  L.sety w 240;
   L.fade_in ~duration:200 layout;
   let board = Bogue.of_layout layout in
-
   let finalstate = !newnewstate in
   Bogue.run board;
   T.push_quit ();

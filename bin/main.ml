@@ -22,8 +22,7 @@ let curr_state = ref init_state
 let rec build_board (game : state) wind =
   let game = draw_tile game wind false in
   let g1, g2 = Gui.create_board_2 game false wind in
-
-  if g2 = false then failwith "game over" else build_board g1 (next_player wind)
+  build_board g1 (next_player wind)
 
 let () = build_board init_state wind
 
