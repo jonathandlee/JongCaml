@@ -28,7 +28,6 @@ let create_quit_button () =
 
 let create_button (x : int) =
   let l = W.label "Drop" in
-
   let r = L.tower ~name:"tile button" ~margins:0 [ L.resident ~w:30 ~h:20 l ] in
   L.setx r x;
   L.sety r 700;
@@ -76,12 +75,10 @@ let create_board_2 (game : state) (first_round : bool)
   let p = get_player game current_player in
   let hand = hand_of_player p in
   if complete_helper (complete hand) then Bogue.quit ();
-
   let tl = closed_hand_tiles (hand_of_player p) in
   let tl = try drawn_tile hand :: tl with EmptyHand -> failwith "fuck" in
   let string_tiles = string_list_of_tile tl in
   let style = Style.(of_shadow (mk_shadow ~width:800 ~radius:640 ())) in
-
   let newnewstate = ref game in
   let image = set_background image_file in
   let box = W.box ~w:720 ~h:600 ~style () in

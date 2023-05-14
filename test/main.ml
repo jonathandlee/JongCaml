@@ -1,6 +1,7 @@
 open OUnit2
 open Mahjong
 open Game
+open Yaku
 
 (* Create some basic inputs for testing*)
 let init_game = setup_game ()
@@ -10,6 +11,35 @@ let init_game = setup_game ()
 let create_example_tile (s : suit) (v : value) (b : bool) : tile = (s, v, b)
 
 (* Example blocks for testing, given that the game is non deterministic *)
+let create_test_pair (s : suit) (v : value) (b : bool) : block =
+  combine
+    (create_single (create_example_tile s v b))
+    (create_example_tile s v b)
+
+let chiitoitsu =
+  [
+    create_test_pair Man (Integer 1) true;
+    create_test_pair Man (Integer 2) true;
+    create_test_pair Man (Integer 3) true;
+    create_test_pair Man (Integer 4) true;
+    create_test_pair Man (Integer 5) true;
+    create_test_pair Man (Integer 6) true;
+    create_test_pair Man (Integer 7) true;
+  ]
+
+(* Given that 4 of a given tile can exist in a game, it's important to test that
+   2 of the same pair still counts as a yaku*)
+let chiitoitsu_other =
+  [
+    create_test_pair Man (Integer 1) true;
+    create_test_pair Man (Integer 1) true;
+    create_test_pair Man (Integer 3) true;
+    create_test_pair Man (Integer 4) true;
+    create_test_pair Man (Integer 5) true;
+    create_test_pair Man (Integer 6) true;
+    create_test_pair Man (Integer 7) true;
+  ]
+
 let wind_block =
   combine
     (combine
@@ -188,6 +218,9 @@ let count_block_honors_test (name : string) (b : block) (expected : int) : test
   name >:: fun _ ->
   assert_equal ~printer:string_of_int (count_block_honors b) expected
 
+let test_yaku (name : string) (b : block list) (expected : bool) f : test =
+  name >:: fun _ -> assert_equal (f b) expected
+
 let method_tests =
   [
     test_draw_wind "basic" init_game East 14;
@@ -249,6 +282,9 @@ let method_tests =
     round_wind_block_test "Test partial wind block" manifest_block West false;
     count_block_honors_test "check honors in block" manifest_block 0;
     count_block_honors_test "check honors in block" wind_block 3;
+    test_yaku "" chiitoitsu true check_chiitoitsu;
+    test_yaku "" chiitoitsu_other true check_chiitoitsu;
+    test_yaku "" [ wind_block ] false check_chiitoitsu;
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]
