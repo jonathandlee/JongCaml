@@ -226,7 +226,7 @@ let rec check_chanta (b : block list) : bool =
   | [] -> true
   | h :: t ->
       if count_block_honors h > 0 || count_block_terminals h > 0 then
-        check_chanta b
+        check_chanta t
       else false
 
 (* Yeah im hardcoding this *)

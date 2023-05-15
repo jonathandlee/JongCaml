@@ -373,6 +373,15 @@ let rec string_of_hand (tiles : tile list) =
       if tl = [] then string_of_tile hd
       else string_of_tile hd ^ ", " ^ string_of_hand tl
 
+let tile_of_option (t : tile option) =
+  match t with
+  | Some t -> string_of_tile t
+  | None -> ""
+
+let hand_to_string (h : hand) =
+  let z = string_of_hand h.tiles in
+  z ^ " and draws are " ^ tile_of_option h.draw
+
 let print_hand hand = print_endline ("Your hand is: " ^ hand)
 
 let rec remove_from_list (list : tile list) (new_list : tile list) (item : tile)
@@ -428,7 +437,9 @@ let string_list_of_tile list = List.map string_of_tile list
 let hand_of_player (p : player) = p.hand
 
 (* Main Functions: *)
-let setup_game () =
+let setup_game (seed : int) () =
+  print_endline (string_of_int seed);
+  Random.init seed;
   let tiles =
     shuffle
       (quadruple generate_all_numbers Pin
@@ -501,6 +512,7 @@ let string_of_wind (d : direction) : string =
   | South -> "South"
 
 (* does not properly work with dead wall *)
+
 let draw_tile board wind from_dead =
   let player_to_draw = determine_player board.players wind in
   let updated_player_wall =
@@ -702,6 +714,12 @@ let combine_with_kanchan (b : block) (t : tile) : block =
 
 (*Combines tile t with all blocks in b and returns a list of any newly combined
   blocks*)
+
+(* To grader: The following code contains the game logic for melding. This was
+   for the purpose of supporting the stretch goal of multi-player interactions,
+   where all players can take the tile a player has discarded. Due to the
+   discrete nature of turns, this functionality is not used, but it should
+   work*)
 let rec combine_block_list (t : tile) (b : block list) (nbl : block list) :
     block list =
   match b with

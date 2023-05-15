@@ -4,7 +4,7 @@ open Game
 open Yaku
 
 (* Create some basic inputs for testing*)
-let init_game = setup_game ()
+let init_game = setup_game 0 ()
 
 (* [pp_string s] pretty-prints string [s]. *)
 
@@ -16,29 +16,77 @@ let create_test_pair (s : suit) (v : value) (b : bool) : block =
     (create_single (create_example_tile s v b))
     (create_example_tile s v b)
 
-let chiitoitsu =
+(*Explicit creation of a hand we found was bugged in testing; to condense line
+  count, we re-use these tiles throughout the projet instead of generating new
+  ones*)
+let pin5 = create_example_tile Pin (Integer 5) true
+let pin6 = create_example_tile Pin (Integer 5) true
+let pin7 = create_example_tile Pin (Integer 5) true
+let man2 = create_example_tile Man (Integer 2) true
+let man3 = create_example_tile Man (Integer 3) true
+let man4 = create_example_tile Man (Integer 4) true
+let man5 = create_example_tile Man (Integer 5) true
+let man6 = create_example_tile Man (Integer 6) true
+let man7 = create_example_tile Man (Integer 7) true
+let man8 = create_example_tile Man (Integer 8) true
+let man9 = create_example_tile Man (Integer 9) true
+let windn = create_example_tile Wind (Direction North) true
+
+let complete_hand =
   [
-    create_test_pair Man (Integer 1) true;
-    create_test_pair Man (Integer 2) true;
-    create_test_pair Man (Integer 3) true;
-    create_test_pair Man (Integer 4) true;
-    create_test_pair Man (Integer 5) true;
-    create_test_pair Man (Integer 6) true;
-    create_test_pair Man (Integer 7) true;
+    pin5;
+    pin6;
+    man2;
+    man2;
+    man4;
+    man5;
+    man6;
+    man7;
+    man8;
+    man9;
+    windn;
+    windn;
+    windn;
   ]
+
+(* why does format forces this onto separate lines??*)
+let hand = { draw = Some pin7; tiles = complete_hand; melds = [] }
+
+let new_hand_to_test =
+  {
+    draw = Some pin7;
+    tiles =
+      [
+        create_example_tile Pin (Integer 3) false;
+        create_example_tile Pin (Integer 4) false;
+        create_example_tile Pin (Integer 5) false;
+        create_example_tile Pin (Integer 8) false;
+        create_example_tile Pin (Integer 9) false;
+        create_example_tile Man (Integer 1) false;
+        create_example_tile Man (Integer 1) false;
+        create_example_tile Man (Integer 2) false;
+        create_example_tile Man (Integer 6) false;
+        create_example_tile Man (Integer 9) false;
+        create_example_tile Sou (Integer 1) false;
+        create_example_tile Sou (Integer 2) false;
+        create_example_tile Sou (Integer 3) false;
+      ];
+    melds = [];
+  }
+
+let m1pair = create_test_pair Man (Integer 1) true
+let m2pair = create_test_pair Man (Integer 2) true
+let m3pair = create_test_pair Man (Integer 3) true
+let m4pair = create_test_pair Man (Integer 4) true
+let m5pair = create_test_pair Man (Integer 5) true
+let m6pair = create_test_pair Man (Integer 6) true
+let m7pair = create_test_pair Man (Integer 7) true
+let chiitoitsu = [ m1pair; m2pair; m3pair; m4pair; m5pair; m6pair; m7pair ]
 
 (* Given that 4 of a given tile can exist in a game, it's important to test that
    2 of the same pair still counts as a yaku*)
 let chiitoitsu_other =
-  [
-    create_test_pair Man (Integer 1) true;
-    create_test_pair Man (Integer 1) true;
-    create_test_pair Man (Integer 3) true;
-    create_test_pair Man (Integer 4) true;
-    create_test_pair Man (Integer 5) true;
-    create_test_pair Man (Integer 6) true;
-    create_test_pair Man (Integer 7) true;
-  ]
+  [ m1pair; m1pair; m3pair; m4pair; m5pair; m6pair; m7pair ]
 
 let wind_block =
   combine
@@ -221,6 +269,33 @@ let count_block_honors_test (name : string) (b : block) (expected : int) : test
 let test_yaku (name : string) (b : block list) (expected : bool) f : test =
   name >:: fun _ -> assert_equal (f b) expected
 
+let test_complete (name : string) (h : hand) (expected : bool) : test =
+  name >:: fun _ ->
+  let z =
+    match complete h with
+    | None -> false
+    | Some z -> true
+  in
+  assert_equal expected z
+
+let generate_meld_test (name : string) (t : tile) (tl : tile list)
+    (expected : int) : test =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int
+    (List.length (generate_melds t tl))
+    expected
+
+let test_blocks (name : string) f (b : block) (expected : bool) : test =
+  name >:: fun _ -> assert_equal (f b) expected
+
+(* This also tests string_of_wind!*)
+let initial_wind_test (name : string) (inp : state) (expected : string) : test =
+  name >:: fun _ -> assert_equal (inp |> round_wind |> string_of_wind) expected
+
+let randomizer_test (name : string) (inp : state) (inp2 : state)
+    (expected : bool) : test =
+  name >:: fun _ -> assert_equal (inp == inp2) expected
+
 let method_tests =
   [
     test_draw_wind "basic" init_game East 14;
@@ -239,11 +314,11 @@ let method_tests =
     test_draw_discard "Test Draw->Discard associativity N" init_game North true;
     test_draw_discard "Test Draw->Discard associativity S" init_game South true;
     string_of_list_test "Test String of List" init_game East
-      "[Pin 4; Pin 9; Man 1; Man 1; Red Man 5; Man 6; Sou 1; Sou 3; Sou 4; \
-       Wind East; Wind South; Dragon White; Dragon Green; ]";
+      "[Pin 1; Pin 2; Pin 4; Pin 5; Pin 7; Pin 7; Man 5; Man 6; Sou 4; Wind \
+       North; Wind North; Dragon White; Dragon Red; ]";
     string_of_list_test "Test String of List" init_game West
-      "[Pin 3; Pin 4; Pin 5; Pin 8; Pin 9; Man 1; Man 1; Man 2; Man 6; Sou 1; \
-       Sou 3; Sou 9; Wind South; ]";
+      "[Pin 1; Pin 2; Pin 2; Pin 5; Pin 6; Pin 7; Man 4; Man 5; Sou 2; Sou 6; \
+       Sou 9; Wind South; Wind West; ]";
     round_wind_test "Test getting round wind" init_game East;
     round_wind_test "Test getting round wind"
       (progress_game 1 init_game East)
@@ -282,9 +357,30 @@ let method_tests =
     round_wind_block_test "Test partial wind block" manifest_block West false;
     count_block_honors_test "check honors in block" manifest_block 0;
     count_block_honors_test "check honors in block" wind_block 3;
-    test_yaku "" chiitoitsu true check_chiitoitsu;
-    test_yaku "" chiitoitsu_other true check_chiitoitsu;
-    test_yaku "" [ wind_block ] false check_chiitoitsu;
+    count_block_terminals_test "check terminals in null block" manifest_block 0;
+    count_block_terminals_test "check terminals in wind" wind_block 0;
+    test_yaku "check chiioitsu" chiitoitsu true check_chiitoitsu;
+    test_yaku "check another chiioitsu" chiitoitsu_other true check_chiitoitsu;
+    test_yaku "check non-chiioutsi hand" [ wind_block ] false check_chiitoitsu;
+    test_yaku "check non-chiioutsi hand" [ manifest_block ] false check_chanta;
+    test_yaku "check non-chiioutsi hand" [ dragon_block ] true check_chanta;
+    test_complete "complete hand true" hand true;
+    test_complete "test incoplete hand" new_hand_to_test false;
+    (*These 3 tests prove that meld would work, were we not limited in scope by
+      discrete turns *)
+    generate_meld_test "Multiple Possible Melds" man3 complete_hand 3;
+    generate_meld_test "One Meld" man3 [ man4; man5 ] 1;
+    generate_meld_test "No Melds" man3 [ man4; man6 ] 0;
+    test_blocks "Test correct pair" is_pair m1pair true;
+    test_blocks "Test incorrect triple!=pair" is_pair wind_block false;
+    test_blocks "Test single != pair" is_pair (create_single man2) false;
+    test_blocks "Test correct triple" is_triple wind_block true;
+    test_blocks "Test single != triple" is_triple (create_single man2) false;
+    test_blocks "Test pair != triple" is_triple m1pair false;
+    test_blocks "Test sequence is correct" is_sequence m1pair false;
+    initial_wind_test "Test INitial wind" (setup_game 1 ()) "East";
+    randomizer_test "Test randomizer" (setup_game 1 ()) (setup_game 2 ()) false;
+    randomizer_test "Test == seeds" (setup_game 1 ()) (setup_game 1 ()) false;
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]

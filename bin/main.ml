@@ -2,7 +2,8 @@ open Mahjong
 open Game
 open Bogue
 
-let init_state = Mahjong.Game.setup_game ()
+let random_seed = int_of_float (Sys.time () *. 1254345642542.)
+let init_state = Mahjong.Game.setup_game random_seed ()
 let wind = Mahjong.Game.round_wind init_state
 let p = Mahjong.Game.get_player init_state wind
 let hand = Mahjong.Game.hand_of_player p
@@ -20,7 +21,12 @@ let curr_state = ref init_state
 (* let main () = Mahjong.Gui.render init_state *)
 
 let rec build_board (game : state) wind =
-  let game = draw_tile game wind false in
+  let game =
+    try draw_tile game wind false
+    with OutOfTiles ->
+      Gui.render_lose_screen "";
+      game
+  in
   let g1, g2 = Gui.create_board_2 game false wind in
   build_board g1 (next_player wind)
 

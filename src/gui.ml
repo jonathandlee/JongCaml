@@ -12,17 +12,16 @@ let string_of_tile (x : tile) = tile_suit x
 let dir = Sys.getcwd ()
 
 (* Rest in peace tony, we commemorate you in 3110 mahjong. *)
-let image_file = dir ^ "/src/newtiles/" ^ "tony.jpg"
+let image_file = dir ^ "/src/newtiles/" ^ "bg.png"
 let hand_to_widget (h : string) = W.image (dir ^ "/src/newtiles/" ^ h ^ ".png")
 let bamboo = dir ^ "/" ^ "bamboo1.png"
-let line = Style.mk_line ~color:Draw.(opaque grey) ~width:5 ~style:Solid ()
+let line = Style.mk_line ~color:Draw.(opaque red) ~width:5 ~style:Solid ()
 
 let create_quit_button () =
-  let style = Style.(create ~border:(mk_border line) ()) in
-  let l = W.label "quit" in
-  let l2 = L.resident ~background:(L.style_bg style) l in
-  L.setx l2 160;
-  L.sety l2 200;
+  let l = W.label ~size:40 "QUIT" in
+  let l2 = L.resident l in
+  L.setx l2 40;
+  L.sety l2 40;
   let open Menu in
   { label = Layout l2; content = Action (fun _ -> Bogue.quit ()) }
 
@@ -30,7 +29,7 @@ let create_button (x : int) =
   let l = W.label "Drop" in
   let r = L.tower ~name:"tile button" ~margins:0 [ L.resident ~w:30 ~h:20 l ] in
   L.setx r x;
-  L.sety r 700;
+  L.sety r 690;
   r
 
 let hand_to_widgets (h : string list) : W.t list = List.map hand_to_widget h
@@ -67,14 +66,34 @@ let complete_helper (b : block list option) : bool =
   | Some z -> true
   | None -> false
 
+let render_lose_screen (winner : string) =
+  (* let style = Style.(of_shadow (mk_shadow ~width:800 ~radius:640 ())) in *)
+  let image = set_background image_file in
+  let text = W.text_display "You ran out of tiles, nobody wins!" in
+  let layout = L.tower [ L.flat_of_w [ text ] ] in
+  let layout = L.superpose [ image; layout ] in
+  let board = Bogue.of_layout layout in
+  Bogue.run board
+
+let render_win_screen (winner : string) =
+  (* let style = Style.(of_shadow (mk_shadow ~width:800 ~radius:640 ())) in *)
+  let image = set_background image_file in
+  let text = W.text_display ("Congrats, player" ^ winner) in
+  let text2 = W.text_display ("You won with hand" ^ winner) in
+  let layout = L.tower [ L.tower_of_w [ text; text2 ] ] in
+  let layout = L.superpose [ image; layout ] in
+  let board = Bogue.of_layout layout in
+  Bogue.run board
+
 let create_board_2 (game : state) (first_round : bool)
     (current_player : direction) =
   let endgame_bool = ref true in
-  let game = draw_tile game current_player false in
   let new_p = player_hand (get_player game (next_wind current_player)) in
   let p = get_player game current_player in
   let hand = hand_of_player p in
-  if complete_helper (complete hand) then Bogue.quit ();
+  let _ = print_endline (hand_to_string hand) in
+  if complete_helper (complete hand) then
+    render_win_screen (hand_to_string hand);
   let tl = closed_hand_tiles (hand_of_player p) in
   let tl = try drawn_tile hand :: tl with EmptyHand -> failwith "fuck" in
   let string_tiles = string_list_of_tile tl in
@@ -97,6 +116,7 @@ let create_board_2 (game : state) (first_round : bool)
           (fun _ ->
             T.push_quit ();
             endgame_bool := false;
+            print_endline "argh!";
             newnewstate :=
               discard_tile_gui
                 (List.nth string_tiles (snd x))
@@ -131,7 +151,6 @@ let create_board_2 (game : state) (first_round : bool)
   L.sety ss 700;
   L.fade_in ~duration:200 layout;
   let board = Bogue.of_layout layout in
-  let finalstate = !newnewstate in
   Bogue.run board;
   T.push_quit ();
-  (finalstate, !endgame_bool)
+  (!newnewstate, !endgame_bool)

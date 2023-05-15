@@ -89,7 +89,7 @@ exception InvalidSuit of string
 exception OutOfTiles
 (** Raised when there are no more tiles in the wall to draw*)
 
-val setup_game : unit -> state
+val setup_game : int -> unit -> state
 (** [setup_game ()] deals four hands and sets up the state of the board for the
     game to begin. *)
 
@@ -191,9 +191,21 @@ val is_triple : block -> bool
 val is_pair : block -> bool
 (** [is_sequence] b checks to see if block b is a sequence *)
 
+val hand_to_string : hand -> string
+(** [hand_to_string h] is the string represented of a hand, represented as
+    "[t1, t2, t3]"*)
+
 val create_single : tile -> block
+(** [create_single t] creates a block containing a single tile. Useful for
+    testing*)
+
 val invalid_block : block
+(* [invalid_block] is an object of invalid block type. Useful for checking if a
+   single is valid *)
+
 val generate_melds : tile -> tile list -> block list
+(** [generate_melds t lst] generates all the possible block lists made possible
+    by melding a tile given a tile lists*)
 
 val melding : state -> direction -> state
 (** [melding s d] checks the most recent discard of player of game state s and
