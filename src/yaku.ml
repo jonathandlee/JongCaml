@@ -31,13 +31,22 @@ let rec prep_hand_helper (h : tile list) (b : block list list) (n : int) :
            (List.fold_right (fun x y -> generate_subsets ht x @ y) b []))
         n
 
+let rec verify (b : block list) : bool =
+  match b with
+  | [] -> true
+  | h :: t -> (
+      match h with
+      | Triple _ | Sequence _ | Pair _ -> verify t
+      | _ -> false)
+
 let complete (h : hand) : block list option =
   try
     Some
       (List.nth
-         (prep_hand_helper
-            ((drawn_tile h :: open_hand_tiles h) @ closed_hand_tiles h)
-            [ [] ] 5)
+         (List.filter verify
+            (prep_hand_helper
+               ((drawn_tile h :: open_hand_tiles h) @ closed_hand_tiles h)
+               [ [] ] 5))
          0)
   with
   | Failure _ -> None
@@ -47,10 +56,11 @@ let complete_closed (h : hand) : block list option =
   try
     Some
       (List.nth
-         (prep_hand_helper
-            (drawn_tile h :: closed_hand_tiles h)
-            [ [] ]
-            (((List.length (closed_hand_tiles h) - 2) / 3) + 1))
+         (List.filter verify
+            (prep_hand_helper
+               (drawn_tile h :: closed_hand_tiles h)
+               [ [] ]
+               (((List.length (closed_hand_tiles h) - 2) / 3) + 1)))
          0)
   with
   | Failure _ -> None
@@ -303,13 +313,21 @@ let get_yaku (h : hand) (drawn : bool) : (string * int) list =
     if check_tsumo h drawn then ans := ("Tsumo", 1) :: !ans else ();
     let iipeikou = check_iipeikou blocklist in
     if iipeikou > 0 then ans := ("Iipeikou", iipeikou) :: !ans else ();
-    if check_triple_triplets blocklist then ans := ("Triple Triplets", 2) :: !ans else ();
-    if check_all_concealed_triplets h then ans := ("Three Concealed Triplets", 2) :: !ans else ();
-    if check_all_triplets blocklist then ans := ("All Triplets", 2) :: !ans else ();
-    if check_shousangen blocklist then ans := ("Little Three Dragons", 2) :: !ans else ();
+    if check_triple_triplets blocklist then
+      ans := ("Triple Triplets", 2) :: !ans
+    else ();
+    if check_all_concealed_triplets h then
+      ans := ("Three Concealed Triplets", 2) :: !ans
+    else ();
+    if check_all_triplets blocklist then ans := ("All Triplets", 2) :: !ans
+    else ();
+    if check_shousangen blocklist then
+      ans := ("Little Three Dragons", 2) :: !ans
+    else ();
     if check_chiitoitsu blocklist then ans := ("Seven Pairs", 2) :: !ans else ();
     if check_chanta blocklist then ans := ("Chanta", 2) :: !ans else ();
     if check_ittsu blocklist then ans := ("Pure Straight", 2) :: !ans else ();
-    if check_sanshiki blocklist then ans := ("Mixed Triple Sequence", 2) :: !ans else ();
+    if check_sanshiki blocklist then ans := ("Mixed Triple Sequence", 2) :: !ans
+    else ()
   end;
   !ans
