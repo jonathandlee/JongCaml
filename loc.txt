@@ -1,0 +1,14 @@
+The biggest thing to note about our system is that not everything in it is 
+actually utilized; our test suite tests to make sure that melding, which takes 
+up a decent amount of code, works correctly, but because of the nature of this 
+game (where only one player can play at a time), implementing this functionality
+within the actual game logic proved too difficult to do in the time span. We 
+would needed to have gotten a server set up, which is a whole new beast to 
+tackle. 
+
+Outside of that, in game.ml, there are 2 versions of discard: one for use with
+a gui, and one without. This is because windows users were unable to use
+bogue, so we made a new version of the game that did not require graphics. 
+There is slight code duplication there, but they act different for the most part
+so hopefully that isn't too problematic. These comprise about 50 lines of code;
+feel free to dock 50-75 lines from the total for these.

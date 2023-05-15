@@ -21,9 +21,15 @@ git-repo: "https://github.coecis.cornell.edu/ap2298/3110Project"
 demo-video-url: ""
 # Write a short, attention-grabbing description of your project.
 desc: >
+  EPILEPSY WARNING: Bogue is a questionable library. Our game implementation
+  requires re-rendering of the board upon state reset, which causes flashing
+  lights. Please be advised and warned about this!!!
   Our project is an implementation of Japanese Ricchii Mahjong in Ocaml. It 
   supports standard 4 player mahjong against other players as well as single
   player interactivity. The project features a fully functioning gui system
-  that gives players a visual representation of their current hand, as well as 
-  all of their discards and other players discards.
+  that gives players a visual representation of their and other player's current
+  hands. This version of mahjong has a slight twist: you can see the tiles of
+  the player directly across from you! This changes the strategy present in
+  the original game: you now have more information on what tiles a single of
+  your opponents have, but so do they. Act accordingly!
 

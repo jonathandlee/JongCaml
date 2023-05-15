@@ -119,6 +119,10 @@ val string_of_wind : direction -> string
 (** [string_of_wind d] gives the string representation of a wind value (e.g.,
     wind East evaluates to "East", etc)*)
 
+val get_points : player -> int
+(** [get_points p] gives the integer representation of a players points.
+    Initializes at 25000 *)
+
 val get_player : state -> direction -> player
 (** [get_player s d] gives the player with wind d from game s. *)
 

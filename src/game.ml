@@ -513,6 +513,8 @@ let string_of_wind (d : direction) : string =
 
 (* does not properly work with dead wall *)
 
+let get_points (p : player) : int = p.points
+
 let draw_tile board wind from_dead =
   let player_to_draw = determine_player board.players wind in
   let updated_player_wall =

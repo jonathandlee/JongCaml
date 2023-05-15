@@ -4,10 +4,35 @@ reasons: 1: the game is non-deterministic, meaning testing has to account for ra
 More importantly though, a large amount of the game is dependent on the GUI, which is
 difficult to test. However, because bogue works so poorly on non-linux machines,
 we were forced to separate our game between command-line inputs and gui inputs.
-This actually gave us an easier branch to do testing on.
+This actually gave us an easier branch to do testing on: the gui has innate 
+separation between game logic and gui logic, so it requires a string input for
+discards. Because of this, we can easily use this version to test discarding, 
+and through it, game state mutations.
 
-In essence, we were able to automatically test: everything except for command-line user-prompted discards.
-Everything else, including discards 
+In essence, we were able to automatically test: everything except for 
+command-line user-prompted discards. Everything else, including discards, was 
+testable.
+
+Tests were designed primarily for the yaku and game modules, using black box
+testing based on specifications alone. Granted, the specifications might be
+unnatural to some readers; we assume some familiarity with mahjong terminology
+for the specifications to make sense. Through this, we initially used black box
+testing to make sure all yaku and game module functions
+worked according to their specs. 
+
+This is the automatic part. The GUI and main.ml (game logic) were tested manually
+by playing the game, attempting to cause as many errors as possible to confirm
+robustness of the system. From this, we were able to find additional errors with 
+our other modules, (such as certain hands counting as wins when they should not be),
+and then added these errors to our test cases. This combined approach 
+should hopefully show comprehensive coverage of the correctness of our system.
+
+One related note: when quitting the game by use of the quit button, and error
+will show up in your console. This is normal; bogue specifies in its documentation
+that it closes windows by raising this error. 
+End
+
+
 
 
 Test Plan Rubric [4 points]

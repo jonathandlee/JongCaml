@@ -266,6 +266,7 @@ let count_block_honors_test (name : string) (b : block) (expected : int) : test
   name >:: fun _ ->
   assert_equal ~printer:string_of_int (count_block_honors b) expected
 
+(* making individual tests for each yaku would take too long methinks *)
 let test_yaku (name : string) (b : block list) (expected : bool) f : test =
   name >:: fun _ -> assert_equal (f b) expected
 
@@ -295,6 +296,9 @@ let initial_wind_test (name : string) (inp : state) (expected : string) : test =
 let randomizer_test (name : string) (inp : state) (inp2 : state)
     (expected : bool) : test =
   name >:: fun _ -> assert_equal (inp == inp2) expected
+
+let test_points (name : string) (inp : player) (expected : int) : test =
+  name >:: fun _ -> assert_equal (get_points inp) expected
 
 let method_tests =
   [
@@ -364,6 +368,29 @@ let method_tests =
     test_yaku "check non-chiioutsi hand" [ wind_block ] false check_chiitoitsu;
     test_yaku "check non-chiioutsi hand" [ manifest_block ] false check_chanta;
     test_yaku "check non-chiioutsi hand" [ dragon_block ] true check_chanta;
+    test_yaku "check non-shousangen hand" [ dragon_block ] false
+      check_shousangen;
+    test_yaku "check non-ittsu hand" [ dragon_block ] false check_ittsu;
+    test_yaku "check non-tanyao hand" [ dragon_block ] false check_tanyao;
+    test_yaku "check (technically) tanyao hand"
+      [ create_single man2 ]
+      true check_tanyao;
+    test_yaku "check non-triple_triplets hand" [ dragon_block ] false
+      check_triple_triplets;
+    test_yaku "check non-triple_triplets hand"
+      [
+        wind_block;
+        dragon_block;
+        combine
+          (create_test_pair Man (Integer 1) true)
+          (create_example_tile Man (Integer 1) true);
+      ]
+      false check_triple_triplets;
+    test_yaku "check non-all_triplets hand" [ dragon_block ] false
+      check_all_triplets;
+    test_yaku "check all_triplets hand"
+      [ dragon_block; dragon_block; dragon_block; dragon_block; m1pair ]
+      true check_all_triplets;
     test_complete "complete hand true" hand true;
     test_complete "test incoplete hand" new_hand_to_test false;
     (*These 3 tests prove that meld would work, were we not limited in scope by
@@ -380,7 +407,7 @@ let method_tests =
     test_blocks "Test sequence is correct" is_sequence m1pair false;
     initial_wind_test "Test INitial wind" (setup_game 1 ()) "East";
     randomizer_test "Test randomizer" (setup_game 1 ()) (setup_game 2 ()) false;
-    randomizer_test "Test == seeds" (setup_game 1 ()) (setup_game 1 ()) false;
+    test_points "test initial points" (get_player init_game East) 25000;
   ]
 
 let suite = "test suite for Mahjong" >::: List.flatten [ method_tests ]
