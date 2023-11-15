@@ -17,7 +17,7 @@ To run the game, simply navigate to the directory you installed the game in and 
 To test the game, simply navigate to the directory you install the game in and run the command `make test`
 
 
-
+# Other helpful commands:
 
 bisect: bisect-clean
 	-dune exec --instrument-with bisect_ppx --force test/main.exe
