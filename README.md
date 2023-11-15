@@ -2,6 +2,8 @@
 
 # Mahjong OCaml!
 
+This is an implementation of Japanese Riichi Mahjong, built entirely from scratch in Ocaml as our final project for CS 3110 at Cornell University. 
+
 Project Members:
 1. Alexander Peek (ap2298)
 2. Jonathan Yen (jfy7)
